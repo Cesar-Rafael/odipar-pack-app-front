@@ -28,6 +28,8 @@ import {
 // ** Styles
 import '@styles/react/apps/app-calendar.scss'
 
+import axios from 'axios'
+
 // ** CalendarColors
 const calendarsColor = {
   Business: 'primary',
@@ -81,6 +83,7 @@ const CalendarComponent = () => {
   // ** Fetch Events On Mount
   useEffect(() => {
     dispatch(fetchEvents(store.selectedCalendars))
+    axios.get('http://localhost:8080/api/Pedido').then(response => console.log(response.data))
   }, [])
 
   return (
