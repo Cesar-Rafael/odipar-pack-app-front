@@ -3,6 +3,12 @@ import { Redirect } from 'react-router-dom'
 
 const AppRoutes = [
   {
+    path: '/apps/pedidos',
+    exact: true,
+    className: 'pedidos-application',
+    component: lazy(() => import('../../views/apps/pedidos/index'))
+  },
+  {
     path: '/apps/email',
     exact: true,
     appLayout: true,

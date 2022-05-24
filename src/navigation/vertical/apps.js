@@ -1,8 +1,14 @@
-import { Mail, MessageSquare, CheckSquare, Calendar, FileText, Circle, ShoppingCart, User } from 'react-feather'
+import { Mail, MessageSquare, CheckSquare, Calendar, FileText, Circle, ShoppingCart, User, Package } from 'react-feather'
 
 export default [
   {
     header: 'Apps & Pages'
+  },
+  {
+    id: 'pedido',
+    title: 'Pedidos',
+    icon: <Package size={20} />,
+    navLink: '/apps/pedidos'
   },
   {
     id: 'email',
