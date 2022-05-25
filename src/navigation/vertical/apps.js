@@ -1,15 +1,36 @@
-import { Mail, MessageSquare, CheckSquare, Calendar, FileText, Circle, ShoppingCart, User, Package } from 'react-feather'
+import { Mail, MessageSquare, CheckSquare, Calendar, FileText, Circle, ShoppingCart, User, Package, Bookmark} from 'react-feather'
 
 export default [
   {
     header: 'Apps & Pages'
   },
   {
-    id: 'pedido',
-    title: 'Pedidos',
-    icon: <Package size={20} />,
-    navLink: '/apps/pedidos'
+    id: 'orders',
+    title: 'Order',
+    icon: <Bookmark size={20} />,
+    children: [
+      {
+        id: 'list',
+        title: 'List',
+        icon: <Circle size={12} />,
+        navLink: '/apps/order/list'
+      }
+      /*
+      {
+        id: 'view',
+        title: 'View',
+        icon: <Circle size={12} />,
+        navLink: '/apps/user/view'
+      },
+      {
+        id: 'edit',
+        title: 'Edit',
+        icon: <Circle size={12} />,
+        navLink: '/apps/user/edit'
+      }*/
+    ]
   },
+  /*
   {
     id: 'email',
     title: 'Email',
@@ -96,6 +117,7 @@ export default [
       }
     ]
   },
+  */
   {
     id: 'users',
     title: 'User',

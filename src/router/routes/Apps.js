@@ -9,6 +9,35 @@ const AppRoutes = [
     component: lazy(() => import('../../views/apps/pedidos/index'))
   },
   {
+    path: '/apps/order/list',
+    component: lazy(() => import('../../views/apps/order/list'))
+  },
+  /*
+  {
+    path: '/apps/order/edit',
+    exact: true,
+    component: () => <Redirect to='/apps/user/order/1' />
+  },
+  {
+    path: '/apps/order/edit/:id',
+    component: lazy(() => import('../../views/apps/order/edit')),
+    meta: {
+      navLink: '/apps/order/edit'
+    }
+  },
+  {
+    path: '/apps/order/view',
+    exact: true,
+    component: () => <Redirect to='/apps/order/view/1' />
+  },
+  {
+    path: '/apps/order/view/:id',
+    component: lazy(() => import('../../views/apps/order/view')),
+    meta: {
+      navLink: '/apps/order/view'
+    }
+  },*/
+  {
     path: '/apps/email',
     exact: true,
     appLayout: true,

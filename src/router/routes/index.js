@@ -18,14 +18,14 @@ const DefaultRoute = '/dashboard/ecommerce'
 // ** Merge Routes
 const Routes = [
   ...DashboardRoutes,
-  ...AppRoutes,
-  ...PagesRoutes,
-  ...UiElementRoutes,
-  ...ExtensionsRoutes,
-  ...PageLayoutsRoutes,
-  ...FormRoutes,
-  ...TablesRoutes,
-  ...ChartMapsRoutes
+  ...AppRoutes
+  //...PagesRoutes,
+  //...UiElementRoutes,
+  //...ExtensionsRoutes,
+  //...PageLayoutsRoutes,
+  //...FormRoutes,
+  //...TablesRoutes,
+  //...ChartMapsRoutes
 ]
 
 export { DefaultRoute, TemplateTitle, Routes }
