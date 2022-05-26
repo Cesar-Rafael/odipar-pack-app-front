@@ -14,6 +14,7 @@ import invoice from '@src/views/apps/invoice/store/reducer'
 import calendar from '@src/views/apps/calendar/store/reducer'
 import ecommerce from '@src/views/apps/ecommerce/store/reducer'
 import dataTables from '@src/views/tables/data-tables/store/reducer'
+import vehicles from '@src/views/apps/vehicle/store/reducer'
 
 const rootReducer = combineReducers({
   auth,
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   email,
   users,
   orders,
+  vehicles,
   navbar,
   layout,
   invoice,

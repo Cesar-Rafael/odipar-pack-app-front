@@ -4,10 +4,10 @@ const initialState = {
     data: [],
     total: 1,
     params: {},
-    selectedUser: null
+    selectedVehicle: null
   }
   
-  const users = (state = initialState, action) => {
+  const vehicles = (state = initialState, action) => {
     switch (action.type) {
       case 'GET_ALL_DATA':
         return { ...state, allData: action.data }
@@ -18,14 +18,12 @@ const initialState = {
           total: action.totalPages,
           params: action.params
         }
-      case 'GET_USER':
-        return { ...state, selectedUser: action.selectedUser }
-      case 'ADD_USER':
-        return { ...state }
-      case 'DELETE_USER':
+      case 'GET_VEHICLE':
+        return { ...state, selectedVehicle: action.selectedVehicle }
+      case 'ADD_VEHICLE':
         return { ...state }
       default:
         return { ...state }
     }
   }
-  export default users
+  export default vehicles

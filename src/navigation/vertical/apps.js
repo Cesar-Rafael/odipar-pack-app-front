@@ -7,13 +7,39 @@ export default [
   {
     id: 'orders',
     title: 'Order',
-    icon: <Bookmark size={20} />,
+    icon: <Package size={20} />,
     children: [
       {
         id: 'list',
         title: 'List',
         icon: <Circle size={12} />,
         navLink: '/apps/order/list'
+      }
+      /*
+      {
+        id: 'view',
+        title: 'View',
+        icon: <Circle size={12} />,
+        navLink: '/apps/user/view'
+      },
+      {
+        id: 'edit',
+        title: 'Edit',
+        icon: <Circle size={12} />,
+        navLink: '/apps/user/edit'
+      }*/
+    ]
+  },
+  {
+    id: 'vehicles',
+    title: 'Vehicle',
+    icon: <Bookmark size={20} />,
+    children: [
+      {
+        id: 'list',
+        title: 'List',
+        icon: <Circle size={12} />,
+        navLink: '/apps/vehicle/list'
       }
       /*
       {

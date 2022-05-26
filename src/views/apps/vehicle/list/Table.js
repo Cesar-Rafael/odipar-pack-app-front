@@ -8,7 +8,7 @@ import Sidebar from './Sidebar'
 import { columns } from './columns'
 
 // ** Store & Actions
-import { getAllData, getData } from './store/action'
+import { getAllData, getData } from '../store/action'
 import { useDispatch, useSelector } from 'react-redux'
 
 // ** Third Party Components
@@ -47,7 +47,7 @@ const CustomHeader = ({ toggleSidebar, handlePerPage, rowsPerPage, handleFilter,
               <option value='25'>25</option>
               <option value='50'>50</option>
             </CustomInput>
-            <Label for='rows-per-page'>Filas</Label>
+            <Label for='rows-per-page'>Unidades de transporte</Label>
           </div>
         </Col>
         <Col
@@ -67,7 +67,7 @@ const CustomHeader = ({ toggleSidebar, handlePerPage, rowsPerPage, handleFilter,
             />
           </div>
           <Button.Ripple color='primary' onClick={toggleSidebar}>
-            Nuevo Pedido
+            Nuevo Vehículo
           </Button.Ripple>
         </Col>
       </Row>
@@ -75,19 +75,18 @@ const CustomHeader = ({ toggleSidebar, handlePerPage, rowsPerPage, handleFilter,
   )
 }
 
-const UsersList = () => {
+const VehiclesList = () => {
   // ** Store Vars
   const dispatch = useDispatch()
-  const store = useSelector(state => state.users)
+  const store = useSelector(state => {
+    return state.vehicles
+  })
 
   // ** States
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [currentRole, setCurrentRole] = useState({ value: '', label: 'Select Role' })
-  const [currentPlan, setCurrentPlan] = useState({ value: '', label: 'Select Plan' })
-  const [currentStatus, setCurrentStatus] = useState({ value: '', label: 'Select Status', number: 0 })
 
   // ** Function to toggle sidebar
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
@@ -99,15 +98,12 @@ const UsersList = () => {
       getData({
         page: currentPage,
         perPage: rowsPerPage,
-        role: currentRole.value,
-        currentPlan: currentPlan.value,
-        status: currentStatus.value,
         q: searchTerm
       })
     )
   }, [dispatch, store.data.length])
 
-  // ** User filter options
+  // ** Order filter options
   const roleOptions = [
     { value: '', label: 'Select Role' },
     { value: 'admin', label: 'Admin' },
@@ -138,9 +134,6 @@ const UsersList = () => {
       getData({
         page: page.selected + 1,
         perPage: rowsPerPage,
-        role: currentRole.value,
-        currentPlan: currentPlan.value,
-        status: currentStatus.value,
         q: searchTerm
       })
     )
@@ -154,9 +147,6 @@ const UsersList = () => {
       getData({
         page: currentPage,
         perPage: value,
-        role: currentRole.value,
-        currentPlan: currentPlan.value,
-        status: currentStatus.value,
         q: searchTerm
       })
     )
@@ -170,9 +160,6 @@ const UsersList = () => {
       getData({
         page: currentPage,
         perPage: rowsPerPage,
-        role: currentRole.value,
-        currentPlan: currentPlan.value,
-        status: currentStatus.value,
         q: val
       })
     )
@@ -204,9 +191,6 @@ const UsersList = () => {
   // ** Table data to render
   const dataToRender = () => {
     const filters = {
-      role: currentRole.value,
-      currentPlan: currentPlan.value,
-      status: currentStatus.value,
       q: searchTerm
     }
 
@@ -225,85 +209,6 @@ const UsersList = () => {
 
   return (
     <Fragment>
-      {/* <Card>
-        <CardHeader>
-          <CardTitle tag='h4'>Buscar filtros</CardTitle>
-        </CardHeader>
-        <CardBody>
-          <Row>
-            <Col md='4'>
-              <Select
-                isClearable={false}
-                theme={selectThemeColors}
-                className='react-select'
-                classNamePrefix='select'
-                options={roleOptions}
-                value={currentRole}
-                onChange={data => {
-                  setCurrentRole(data)
-                  dispatch(
-                    getData({
-                      page: currentPage,
-                      perPage: rowsPerPage,
-                      role: data.value,
-                      currentPlan: currentPlan.value,
-                      status: currentStatus.value,
-                      q: searchTerm
-                    })
-                  )
-                }}
-              />
-            </Col>
-            <Col className='my-md-0 my-1' md='4'>
-              <Select
-                theme={selectThemeColors}
-                isClearable={false}
-                className='react-select'
-                classNamePrefix='select'
-                options={planOptions}
-                value={currentPlan}
-                onChange={data => {
-                  setCurrentPlan(data)
-                  dispatch(
-                    getData({
-                      page: currentPage,
-                      perPage: rowsPerPage,
-                      role: currentRole.value,
-                      currentPlan: data.value,
-                      status: currentStatus.value,
-                      q: searchTerm
-                    })
-                  )
-                }}
-              />
-            </Col>
-            <Col md='4'>
-              <Select
-                theme={selectThemeColors}
-                isClearable={false}
-                className='react-select'
-                classNamePrefix='select'
-                options={statusOptions}
-                value={currentStatus}
-                onChange={data => {
-                  setCurrentStatus(data)
-                  dispatch(
-                    getData({
-                      page: currentPage,
-                      perPage: rowsPerPage,
-                      role: currentRole.value,
-                      currentPlan: currentPlan.value,
-                      status: data.value,
-                      q: searchTerm
-                    })
-                  )
-                }}
-              />
-            </Col>
-          </Row>
-        </CardBody>
-      </Card>
- */}
       <Card>
         <DataTable
           noHeader
@@ -333,4 +238,4 @@ const UsersList = () => {
   )
 }
 
-export default UsersList
+export default VehiclesList

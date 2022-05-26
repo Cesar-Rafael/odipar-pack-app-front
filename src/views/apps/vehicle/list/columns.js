@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import Avatar from '@components/avatar'
 
 // ** Store & Actions
-import { getUser, deleteUser } from './store/action'
+import { getVehicle } from '../store/action'
 import { store } from '@store/storeConfig/store'
 
 // ** Third Party Components
@@ -68,60 +68,48 @@ const statusObj = {
 
 export const columns = [
   {
-    name: 'Cliente',
-    minWidth: '297px',
-    selector: 'fullName',
+    name: 'ID',
+    minWidth: '85px',
+    selector: 'id',
     sortable: true,
-    cell: row => (
-      <div className='d-flex justify-content-left align-items-center'>
-        {renderClient(row)}
-        <div className='d-flex flex-column'>
-          <Link
-            to={`/apps/user/view/${row.id}`}
-            className='user-name text-truncate mb-0'
-            onClick={() => store.dispatch(getUser(row.id))}
-          >
-            <span className='font-weight-bold'>{row.fullName}</span>
-          </Link>
-          <small className='text-truncate text-muted mb-0'>@{row.username}</small>
-        </div>
-      </div>
-    )
+    cell: row => row.id
   },
   {
-    name: 'Código',
-    minWidth: '178px',
-    selector: 'email',
+    name: 'Codigo',
+    minWidth: '150px',
+    selector: 'code',
     sortable: true,
-    cell: row => row.email
+    cell: row => row.codigo || ''
   },
   {
-    name: 'Ubicación actual',
-    minWidth: '320px',
-    selector: 'role',
+    name: 'Capacidad de carga',
+    minWidth: '172px',
+    selector: 'totalCapacity',
     sortable: true,
-    cell: row => renderRole(row)
+    cell: row => row.capacidadTotal
   },
   {
-    name: 'Destino',
+    name: 'Oficina Actual',
     minWidth: '138px',
-    selector: 'currentPlan',
+    selector: 'office',
     sortable: true,
-    cell: row => <span className='text-capitalize'>{row.currentPlan}</span>
+    cell: row => row.oficinaActual
   },
   {
     name: 'Estado',
-    minWidth: '138px',
+    minWidth: '200px',
     selector: 'status',
     sortable: true,
+    /*
     cell: row => (
       <Badge className='text-capitalize' color={statusObj[row.status]} pill>
         {row.status}
       </Badge>
-    )
+    )*/
+    cell: row => row.estado
   },
   {
-    name: 'Actions',
+    name: 'Acciones',
     minWidth: '100px',
     cell: row => (
       <UncontrolledDropdown>
@@ -133,7 +121,7 @@ export const columns = [
             tag={Link}
             to={`/apps/user/view/${row.id}`}
             className='w-100'
-            onClick={() => store.dispatch(getUser(row.id))}
+            onClick={() => store.dispatch(getVehicle(row.id))}
           >
             <FileText size={14} className='mr-50' />
             <span className='align-middle'>Details</span>
@@ -142,14 +130,10 @@ export const columns = [
             tag={Link}
             to={`/apps/user/edit/${row.id}`}
             className='w-100'
-            onClick={() => store.dispatch(getUser(row.id))}
+            onClick={() => store.dispatch(getVehicle(row.id))}
           >
             <Archive size={14} className='mr-50' />
             <span className='align-middle'>Edit</span>
-          </DropdownItem>
-          <DropdownItem className='w-100' onClick={() => store.dispatch(deleteUser(row.id))}>
-            <Trash2 size={14} className='mr-50' />
-            <span className='align-middle'>Delete</span>
           </DropdownItem>
         </DropdownMenu>
       </UncontrolledDropdown>

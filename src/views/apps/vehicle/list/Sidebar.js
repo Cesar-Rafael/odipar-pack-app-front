@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form'
 import { Button, FormGroup, Label, FormText, Form, Input } from 'reactstrap'
 
 // ** Store & Actions
-import { addUser } from './store/action'
+import { addVehicle } from '../store/action'
 import { useDispatch } from 'react-redux'
 
 const SidebarNewUsers = ({ open, toggleSidebar }) => {
@@ -32,7 +32,7 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
     if (isObjEmpty(errors)) {
       toggleSidebar()
       dispatch(
-        addUser({
+        addVehicle({
           fullName: values['full-name'],
           company: values.company,
           role,
@@ -60,7 +60,7 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
       <Form onSubmit={handleSubmit(onSubmit)}>
         <FormGroup>
           <Label for='full-name'>
-            Nombre del cliente <span className='text-danger'>*</span>
+            Full Name <span className='text-danger'>*</span>
           </Label>
           <Input
             name='full-name'
@@ -70,7 +70,7 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
             className={classnames({ 'is-invalid': errors['full-name'] })}
           />
         </FormGroup>
-        {/*<FormGroup>
+        <FormGroup>
           <Label for='username'>
             Username <span className='text-danger'>*</span>
           </Label>
@@ -81,7 +81,7 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
             innerRef={register({ required: true })}
             className={classnames({ 'is-invalid': errors['username'] })}
           />
-        </FormGroup>*/}
+        </FormGroup>
         <FormGroup>
           <Label for='email'>
             Email <span className='text-danger'>*</span>
@@ -98,17 +98,17 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
         </FormGroup>
         <FormGroup>
           <Label for='company'>
-            Cantidad de paquetes <span className='text-danger'>*</span>
+            Company <span className='text-danger'>*</span>
           </Label>
           <Input
             name='company'
             id='company'
-            placeholder='4'
+            placeholder='Company Pvt Ltd'
             innerRef={register({ required: true })}
             className={classnames({ 'is-invalid': errors['company'] })}
           />
         </FormGroup>
-        {/*<FormGroup>
+        <FormGroup>
           <Label for='country'>
             Country <span className='text-danger'>*</span>
           </Label>
@@ -131,9 +131,9 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
             innerRef={register({ required: true })}
             className={classnames({ 'is-invalid': errors['contact'] })}
           />
-        </FormGroup>*/}
+        </FormGroup>
         <FormGroup>
-          <Label for='user-role'>Oficina de destino</Label>
+          <Label for='user-role'>User Role</Label>
           <Input type='select' id='user-role' name='user-role' value={role} onChange={e => setRole(e.target.value)}>
             <option value='subscriber'>Subscriber</option>
             <option value='editor'>Editor</option>
@@ -142,7 +142,7 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
             <option value='admin'>Admin</option>
           </Input>
         </FormGroup>
-        {/*<FormGroup className='mb-2' value={plan} onChange={e => setPlan(e.target.value)}>
+        <FormGroup className='mb-2' value={plan} onChange={e => setPlan(e.target.value)}>
           <Label for='select-plan'>Select Plan</Label>
           <Input type='select' id='select-plan' name='select-plan'>
             <option value='basic'>Basic</option>
@@ -150,7 +150,7 @@ const SidebarNewUsers = ({ open, toggleSidebar }) => {
             <option value='company'>Company</option>
             <option value='team'>Team</option>
           </Input>
-        </FormGroup>*/}
+        </FormGroup>
         <Button type='submit' className='mr-1' color='primary'>
           Submit
         </Button>
