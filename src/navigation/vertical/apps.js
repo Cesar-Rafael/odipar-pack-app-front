@@ -56,6 +56,12 @@ export default [
       }*/
     ]
   },
+  {
+    id: 'simulation',
+    title: 'Simulation',
+    icon: <Mail size={20} />,
+    navLink: '/apps/simulation'
+  },
   /*
   {
     id: 'email',
