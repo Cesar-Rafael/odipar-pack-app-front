@@ -1,4 +1,4 @@
-import { Mail, MessageSquare, CheckSquare, Calendar, FileText, Circle, ShoppingCart, User, Package, Bookmark} from 'react-feather'
+import { Mail, MessageSquare, CheckSquare, Calendar, FileText, Circle, ShoppingCart, User, Package, Bookmark, Map} from 'react-feather'
 
 export default [
   {
@@ -32,7 +32,7 @@ export default [
   },
   {
     id: 'vehicles',
-    title: 'Vehicle',
+    title: 'Unidades de trasporte',
     icon: <Bookmark size={20} />,
     children: [
       {
@@ -57,9 +57,35 @@ export default [
     ]
   },
   {
+    id: 'offices',
+    title: 'Oficinas',
+    icon: <Bookmark size={20} />,
+    children: [
+      {
+        id: 'list',
+        title: 'List',
+        icon: <Circle size={12} />,
+        navLink: '/apps/office/list'
+      }
+      /*
+      {
+        id: 'view',
+        title: 'View',
+        icon: <Circle size={12} />,
+        navLink: '/apps/user/view'
+      },
+      {
+        id: 'edit',
+        title: 'Edit',
+        icon: <Circle size={12} />,
+        navLink: '/apps/user/edit'
+      }*/
+    ]
+  },
+  {
     id: 'simulation',
     title: 'Simulation',
-    icon: <Mail size={20} />,
+    icon: <Map size={20} />,
     navLink: '/apps/simulation'
   },
   /*
