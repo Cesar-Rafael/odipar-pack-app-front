@@ -11,6 +11,10 @@ const AppRoutes = [
     path: '/apps/vehicle/list',
     component: lazy(() => import('../../views/apps/vehicle/list'))
   },
+  {
+    path: '/apps/simulation',
+    component: lazy(() => import('../../views/apps/simulation'))
+  },
   /*
   {
     path: '/apps/order/edit',
