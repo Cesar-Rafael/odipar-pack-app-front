@@ -28,7 +28,7 @@ axios.get('http://localhost:8080/api/Pedido').then(response => {
 export const basicColumns = [
   {
     name: 'ID',
-    selector: 'id',
+    selector: 'idPedido',
     sortable: true,
     maxWidth: '100px'
   },
@@ -40,19 +40,19 @@ export const basicColumns = [
   },
   {
     name: 'Cantidad Paquetes',
-    selector: 'package',
+    selector: 'cantPaquetes',
     sortable: true,
     minWidth: '310px'
   },
   {
     name: 'Cantidad Paquetes no Asignados',
-    selector: 'packageUnassigned',
+    selector: 'cantPaquetesNoAsignado',
     sortable: true,
     minWidth: '250px'
   },
   {
     name: 'Ciudad Destino',
-    selector: 'destinyCity',
+    selector: 'idCiudadDestino',
     sortable: true,
     minWidth: '100px'
   }

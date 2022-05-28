@@ -1,7 +1,8 @@
-// ** Table Columns
-import { data, basicColumns } from '../data'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
-console.log(data)
+// ** Table Columns
+import { basicColumns } from '../data'
 
 // ** Third Party Components
 import { ChevronDown } from 'react-feather'
@@ -9,6 +10,16 @@ import DataTable from 'react-data-table-component'
 import { Card, CardHeader, CardTitle } from 'reactstrap'
 
 const DataTablesBasic = () => {
+  const [orders, setOrders] = useState([])
+
+  useEffect(() => {
+    axios.get('http://localhost:8080/api/Pedido').then(response => {
+      console.log(response.data)
+      setOrders(response.data)
+      console.log(orders)
+    })
+  }, [])
+
   return (
     <Card>
       <CardHeader>
@@ -17,7 +28,7 @@ const DataTablesBasic = () => {
       <DataTable
         noHeader
         pagination
-        data={data}
+        data={orders}
         columns={basicColumns}
         className='react-dataTable'
         sortIcon={<ChevronDown size={10} />}
