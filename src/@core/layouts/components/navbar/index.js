@@ -2,14 +2,14 @@
 import { Fragment } from 'react'
 
 // ** Dropdowns Imports
-import IntlDropdown from './IntlDropdown'
-import CartDropdown from './CartDropdown'
+//import IntlDropdown from './IntlDropdown'
+//import CartDropdown from './CartDropdown'
 import UserDropdown from './UserDropdown'
-import NavbarSearch from './NavbarSearch'
-import NotificationDropdown from './NotificationDropdown'
+//import NavbarSearch from './NavbarSearch'
+//import NotificationDropdown from './NotificationDropdown'
 
 // ** Custom Components
-import NavbarBookmarks from './NavbarBookmarks'
+//import NavbarBookmarks from './NavbarBookmarks'
 
 // ** Third Party Components
 import { Sun, Moon } from 'react-feather'
@@ -30,9 +30,11 @@ const ThemeNavbar = props => {
 
   return (
     <Fragment>
+      {/*
       <div className='bookmark-wrapper d-flex align-items-center'>
         <NavbarBookmarks setMenuVisibility={setMenuVisibility} />
       </div>
+      */}
       <ul className='nav navbar-nav align-items-center ml-auto'>
         {/*<IntlDropdown />
         <NavItem className='d-none d-lg-block'>
