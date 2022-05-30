@@ -1,15 +1,30 @@
-// ** User List Component
-import Table from './Table'
+// ** React Imports
+import { Fragment } from 'react'
+
+// ** Custom Components
+import Breadcrumbs from '@components/breadcrumbs'
+
+// ** Third Party Components
+import { Row, Col } from 'reactstrap'
+
+// ** Tables
+import TableZeroConfig from './TableZeroConfig'
 
 // ** Styles
-import '@styles/react/apps/app-users.scss'
+import '@styles/react/libs/tables/react-dataTable-component.scss'
 
-const VehiclesList = () => {
+
+const Tables = () => {
   return (
-    <div className='app-vehicle-list'>
-      <Table />
-    </div>
+    <Fragment>
+      {/*<Breadcrumbs breadCrumbTitle='Pedidos Registrados' breadCrumbParent='Páginas' breadCrumbActive='Listado' />*/}
+      <Row>
+        <Col sm='12'>
+          <TableZeroConfig />
+        </Col>
+      </Row>
+    </Fragment>
   )
 }
 
-export default VehiclesList
+export default Tables

@@ -10,23 +10,27 @@ import DataTable from 'react-data-table-component'
 import { Card, CardHeader, CardTitle } from 'reactstrap'
 
 const DataTablesBasic = () => {
-  const [orders, setOrders] = useState([])
+  const [vehicules, setVehicules] = useState([])
 
-  useEffect(() => {
-    axios.get('http://localhost:8080/Pedido/').then(response => {
-      setOrders(response.data)
+  // useEffect(() => {
+  //   axios.get('http://localhost:8080/UnidadTransporte/').then(response => {
+  //     setVehicules(response.data)
+  //   })
+  // }, [])
+
+  axios.get('http://localhost:8080/UnidadTransporte/').then(response => {
+      setVehicules(response.data)
     })
-  }, [])
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle tag='h4'>Pedidos Registrados</CardTitle>
+        <CardTitle tag='h4'>Vehículos Registrados</CardTitle>
       </CardHeader>
       <DataTable
         noHeader
         pagination
-        data={orders}
+        data={vehicules}
         columns={basicColumns}
         className='react-dataTable'
         sortIcon={<ChevronDown size={10} />}

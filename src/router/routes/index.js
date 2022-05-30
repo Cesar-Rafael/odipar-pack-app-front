@@ -1,9 +1,9 @@
 // ** Routes Imports
 import DashboardRoutes from './Dashboards'
 import AppRoutes from './Apps'
+import TablesRoutes from './Tables'
 // import FormRoutes from './Forms'
 // import PagesRoutes from './Pages'
-// import TablesRoutes from './Tables'
 // import ChartMapsRoutes from './ChartsMaps'
 // import UiElementRoutes from './UiElements'
 // import ExtensionsRoutes from './Extensions'
@@ -18,13 +18,13 @@ const DefaultRoute = '/apps/order/list'
 // ** Merge Routes
 const Routes = [
   ...DashboardRoutes,
-  ...AppRoutes
+  ...AppRoutes,
+  ...TablesRoutes
   //...PagesRoutes,
   //...UiElementRoutes,
   //...ExtensionsRoutes,
   //...PageLayoutsRoutes,
   //...FormRoutes,
-  //...TablesRoutes,
   //...ChartMapsRoutes
 ]
 

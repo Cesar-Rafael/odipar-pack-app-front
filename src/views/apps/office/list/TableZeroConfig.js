@@ -10,23 +10,23 @@ import DataTable from 'react-data-table-component'
 import { Card, CardHeader, CardTitle } from 'reactstrap'
 
 const DataTablesBasic = () => {
-  const [orders, setOrders] = useState([])
+  const [offices, setOffices] = useState([])
 
   useEffect(() => {
-    axios.get('http://localhost:8080/Pedido/').then(response => {
-      setOrders(response.data)
+    axios.get('http://localhost:8080/Oficina/').then(response => {
+      setOffices(response.data)
     })
   }, [])
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle tag='h4'>Pedidos Registrados</CardTitle>
+        <CardTitle tag='h4'>Oficinas Registradas</CardTitle>
       </CardHeader>
       <DataTable
         noHeader
         pagination
-        data={orders}
+        data={offices}
         columns={basicColumns}
         className='react-dataTable'
         sortIcon={<ChevronDown size={10} />}

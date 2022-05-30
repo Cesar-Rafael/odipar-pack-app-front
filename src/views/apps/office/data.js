@@ -20,46 +20,34 @@ const status = {
 // ** Table Zero Config Column
 export const basicColumns = [
   {
-    name: 'ID',
-    selector: 'id',
+    name: 'Ubigeo',
+    selector: 'ubigeo',
     sortable: true,
-    maxWidth: '50px'
+    minWidth: '50px'
   },
   {
-    name: 'Cliente',
-    selector: 'idCliente',
+    name: 'Region',
+    selector: 'region',
     sortable: true,
-    minWidth: '200px'
+    minWidth: '100px'
   },
   {
-    name: 'Paquetes Solicitados',
-    selector: 'cantPaquetes',
+    name: 'Departamento',
+    selector: 'departamento',
+    sortable: true,
+    minWidth: '100px'
+  },
+  {
+    name: 'Latitud',
+    selector: 'latitud',
     sortable: true,
     minWidth: '80px'
   },
   {
-    name: 'Paquetes no Asignados',
-    selector: 'cantPaquetesNoAsignado',
-    sortable: true,
-    minWidth: '80px'
-  },
-  {
-    name: 'Estado',
-    selector: 'estado',
+    name: 'Longitud',
+    selector: 'longitud',
     sortable: true,
     minWidth: '140px'
-  },
-  {
-    name: 'Ciudad Destino',
-    selector: 'idCiudadDestino',
-    sortable: true,
-    minWidth: '140px'
-  },
-  {
-    name: 'Fecha de Registro',
-    selector: 'fechaHoraCreacion',
-    sortable: true,
-    minWidth: '120px'
   }
 ]
 

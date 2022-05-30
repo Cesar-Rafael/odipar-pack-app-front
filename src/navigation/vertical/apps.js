@@ -32,7 +32,7 @@ export default [
   },
   {
     id: 'vehicles',
-    title: 'Unidades de trasporte',
+    title: 'Vehicles',
     icon: <Bookmark size={20} />,
     children: [
       {
@@ -58,7 +58,7 @@ export default [
   },
   {
     id: 'offices',
-    title: 'Oficinas',
+    title: 'Offices',
     icon: <Bookmark size={20} />,
     children: [
       {

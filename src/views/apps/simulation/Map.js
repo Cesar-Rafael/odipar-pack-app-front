@@ -5,7 +5,7 @@ import '@styles/react/libs/maps/map-leaflet.scss'
 import Markers from './Markers'
 
 // ** Store & Actions
-import { getAllData, getData } from '../office/store/action'
+// import { getAllData, getData } from '../office/store/action'
 import { useDispatch, useSelector } from 'react-redux'
 import { Fragment, useState, useEffect } from 'react'
 
@@ -29,13 +29,13 @@ const MapView = () => {
 
 
   // ** Store Vars
-  const dispatch = useDispatch()
-  const store = useSelector(state => {
-    return state.offices
-  })
+  // const dispatch = useDispatch()
+  // const store = useSelector(state => {
+  //   return state.offices
+  // })
 
   useEffect(() => {
-    dispatch(getAllData())
+    //dispatch(getAllData())
   }, [])
 
   return (
@@ -49,7 +49,7 @@ const MapView = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Markers offices={store.allData} icon={Icon1}/>
+            <Markers offices={[]} icon={Icon1}/>
         </MapContainer>
       </CardBody>
     </Card>
