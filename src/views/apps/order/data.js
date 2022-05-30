@@ -10,10 +10,10 @@ import { Badge, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem
 const states = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary']
 
 const status = {
-  1: { title: 'Current', color: 'light-primary' },
-  2: { title: 'Professional', color: 'light-success' },
-  3: { title: 'Rejected', color: 'light-danger' },
-  4: { title: 'Resigned', color: 'light-warning' },
+  NO_ASIGNADO: { title: 'Current', color: 'light-primary' },
+  EN_PROCESO: { title: 'Professional', color: 'light-success' },
+  EN_TRANSITO: { title: 'Rejected', color: 'light-danger' },
+  ENTREGADO: { title: 'Resigned', color: 'light-warning' },
   5: { title: 'Applied', color: 'light-info' }
 }
 
@@ -27,7 +27,13 @@ export const basicColumns = [
   },
   {
     name: 'Cliente',
-    selector: 'idCliente',
+    selector: 'nombreCompletoCliente',
+    sortable: true,
+    minWidth: '200px'
+  },
+  {
+    name: 'Correo Cliente',
+    selector: 'correoCliente',
     sortable: true,
     minWidth: '200px'
   },
@@ -51,7 +57,7 @@ export const basicColumns = [
   },
   {
     name: 'Ciudad Destino',
-    selector: 'idCiudadDestino',
+    selector: 'ciudadDestino',
     sortable: true,
     minWidth: '140px'
   },
