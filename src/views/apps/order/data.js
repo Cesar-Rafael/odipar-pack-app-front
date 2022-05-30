@@ -10,11 +10,10 @@ import { Badge, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem
 const states = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary']
 
 const status = {
-  NO_ASIGNADO: { title: 'Current', color: 'light-primary' },
-  EN_PROCESO: { title: 'Professional', color: 'light-success' },
-  EN_TRANSITO: { title: 'Rejected', color: 'light-danger' },
-  ENTREGADO: { title: 'Resigned', color: 'light-warning' },
-  5: { title: 'Applied', color: 'light-info' }
+  NO_ASIGNADO: { title: 'No Asignado', color: 'light-danger' },
+  EN_PROCESO: { title: 'En Proceso', color: 'light-primary' },
+  EN_TRANSITO: { title: 'En Tránsito', color: 'light-info' },
+  ENTREGADO: { title: 'Entregado', color: 'light-success' }
 }
 
 // ** Table Zero Config Column
@@ -23,7 +22,7 @@ export const basicColumns = [
     name: 'ID',
     selector: 'id',
     sortable: true,
-    maxWidth: '50px'
+    maxWidth: '25px'
   },
   {
     name: 'Cliente',
@@ -53,7 +52,14 @@ export const basicColumns = [
     name: 'Estado',
     selector: 'estado',
     sortable: true,
-    minWidth: '140px'
+    minWidth: '100px',
+    cell: row => {
+      return (
+        <Badge color={status[row.estado].color} pill>
+          {status[row.estado].title}
+        </Badge>
+      )
+    }
   },
   {
     name: 'Ciudad Destino',
@@ -65,7 +71,7 @@ export const basicColumns = [
     name: 'Fecha de Registro',
     selector: 'fechaHoraCreacion',
     sortable: true,
-    minWidth: '120px'
+    minWidth: '180px'
   }
 ]
 

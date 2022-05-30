@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import moment from 'moment'
 
 // ** Table Columns
 import { basicColumns } from '../data'
@@ -14,7 +15,10 @@ const DataTablesBasic = () => {
 
   useEffect(() => {
     axios.get('http://localhost:8080/Pedido/').then(response => {
-      setOrders(response.data)
+      setOrders(response.data.map(order => {
+        order.fechaHoraCreacion = moment(order.fechaHoraCreacion).format('DD/MM/YYYY HH:mm')
+        return order
+      }))
     })
   }, [])
 
