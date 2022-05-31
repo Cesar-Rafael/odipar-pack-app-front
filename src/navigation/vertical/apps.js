@@ -30,6 +30,12 @@ export default [
       }*/
     ]
   },
+  {
+    id: 'bloqueos',
+    title: 'Bloqueo',
+    icon: <MessageSquare size={20} />,
+    navLink: '/apps/block/add'
+  },
   /*
   {
     id: 'email',
