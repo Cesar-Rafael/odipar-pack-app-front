@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardBody } from 'reactstrap'
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet'
 import L from 'leaflet'
 import '@styles/react/libs/maps/map-leaflet.scss'
 import Markers from './Markers'
@@ -31,18 +31,37 @@ const MapView = () => {
   const lat = -12.51
   const lng = -76.79
   const zoom = 4.5
-
   const position = [lat, lng]
+  const coordenatesPerOffice = {}
 
   const [offices, setOffices] = useState([])
   const [vehicules, setVehicules] = useState([])
+  //const [edges, setEdges] = useState([])
+  const [edgePositions, setEdgesPositions] = useState([])
 
   useEffect(() => {
     axios.get('http://localhost:8080/Oficina/').then(response => {
       setOffices(response.data)
+      const offices = response.data
+      for (const office of offices) {
+        coordenatesPerOffice[office.ubigeo] = { latitud: office.latitud, longitud: office.longitud }
+      }
     })
+
     axios.get('http://localhost:8080/UnidadTransporte/').then(response => {
       setVehicules(response.data)
+    })
+
+    axios.get('http://localhost:8080/Tramo/').then(response => {
+      const edges = response.data
+      const positions = []
+      for (const edge of edges) {
+        const origin = coordenatesPerOffice[edge.idCiudadI]
+        const destiny = coordenatesPerOffice[edge.idCiudadJ]
+        positions.push([[origin.latitud, origin.longitud], [destiny.latitud, destiny.longitud]])
+      }
+
+      setEdgesPositions(positions)
     })
   }, [])
 
@@ -75,6 +94,10 @@ const MapView = () => {
                 <span>Longitud: {office.longitud}</span>
               </Popup>
             </Marker>)
+          })}
+
+          {edgePositions.map((position, idx) => {
+            return (<Polyline key={`edge-${idx}`} positions={position} color={'yellow'} weight={0.5}/>)
           })}
 
         </MapContainer>
