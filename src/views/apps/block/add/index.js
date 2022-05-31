@@ -14,6 +14,7 @@ const Tables = () => {
 
     const [bloqueos, setBloqueos] = useState([])
     const [pedidos, setPedidos] = useState([])
+    const [mes, setMes] = useState(0)
 
     const showFile = (e) => {
         e.preventDefault()
@@ -68,12 +69,15 @@ const Tables = () => {
             for (let i = 0; i < line.length; i++) {
                 const d = new Date()
                 
-                const part = line[i].split(/(\s+)/).filter(e => e.length > 1)
+                const part = line[i].split(/(\s+)/).filter(e => e.trim().length > 0)
                 if (part.length < 1) break
-                const pedido = { id: 0, idCliente: 0, cantPaquetes: d, cantPaquetesNoAsignado: 0, idCiudadDestino: 0, fechaHoraCreacion: d, estado: 0 }
-                pedido.idCiudadDestino = parseInt(part[5].slice(0, -1))
-                pedido.cantPaquetes = parseInt(part[6].slice(0, -1))
-                pedido.idCliente = parseInt(part[7].slice(0, -1))
+                console.log(part)
+                const pedido = { id: 0, idCliente: 0, cantPaquetes: 0, cantPaquetesNoAsignado: 0, idCiudadDestino: 0, fechaHoraCreacion: d, estado: 0 }
+                pedido.idCiudadDestino = parseInt(part[4].slice(0, -1))
+                pedido.cantPaquetes = parseInt(part[5].slice(0, -1))
+                pedido.cantPaquetesNoAsignado = parseInt(part[5].slice(0, -1))
+                pedido.idCliente = parseInt(part[6])
+                d.setMonth(mes)
                 d.setDate(parseInt(part[0]))
                 const hora = part[1].split(":")
                 d.setHours(parseInt(hora[0]), parseInt(hora[1].slice(0, -1)))
@@ -100,6 +104,7 @@ const Tables = () => {
             <Col sm='12'>
                 <FormGroup>
                 <Label for='inputFile'>carga de pedidos masivo</Label>
+                <Input type='number' onChange={(e) => setMes(e.target.value)}></Input>
                 <Input type='file' id='inputFile' name='fileInpur' onChange={pedidoMasivo}/>
                 </FormGroup>
             </Col>
