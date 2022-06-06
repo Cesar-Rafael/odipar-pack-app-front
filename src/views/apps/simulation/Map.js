@@ -10,8 +10,8 @@ import axios from 'axios'
 const OfficeIcon = new L.Icon({
   iconUrl: require('@src/assets/images/svg/officeIcon.png').default,
   iconRetinaUrl: require('@src/assets/images/svg/officeIcon.png').default,
-  iconSize: [20, 20],
-  iconAnchor: [10, 20]
+  iconSize: [14, 14],
+  iconAnchor: [7, 14]
   //popupAnchor: [10, -44],
   //shadowSize: [68, 95],
   //shadowAnchor: [20, 92]
@@ -20,8 +20,8 @@ const OfficeIcon = new L.Icon({
 const VehiculeIcon = new L.Icon({
   iconUrl: require('@src/assets/images/svg/vehicule.png').default,
   iconRetinaUrl: require('@src/assets/images/svg/vehicule.png').default,
-  iconSize: [24, 24],
-  iconAnchor: [12, 24]
+  iconSize: [14, 14],
+  iconAnchor: [7, 14]
   //popupAnchor: [10, -44],
   //shadowSize: [68, 95],
   //shadowAnchor: [20, 92]
@@ -33,10 +33,10 @@ const MapView = () => {
   const zoom = 4.5
   const position = [lat, lng]
   const coordenatesPerOffice = {}
+  let edges = []
 
   const [offices, setOffices] = useState([])
   const [vehicules, setVehicules] = useState([])
-  //const [edges, setEdges] = useState([])
   const [edgePositions, setEdgesPositions] = useState([])
 
   useEffect(() => {
@@ -52,17 +52,27 @@ const MapView = () => {
       setVehicules(response.data)
     })
 
-    axios.get('http://localhost:8080/Tramo/').then(response => {
-      const edges = response.data
-      const positions = []
-      for (const edge of edges) {
-        const origin = coordenatesPerOffice[edge.idCiudadI]
-        const destiny = coordenatesPerOffice[edge.idCiudadJ]
-        positions.push([[origin.latitud, origin.longitud], [destiny.latitud, destiny.longitud]])
-      }
+    // axios.get('http://localhost:8080/ABC/').then(response => {
+    //   console.log(response)
+    // })
 
-      setEdgesPositions(positions)
+    axios.get('http://localhost:8080/Tramo/').then(response => {
+      edges = response.data
+      axios.get('http://localhost:8080/TramosUsados/').then(response => {
+        const listEdges = response.data
+        const positions = []
+        console.log(edges)
+        for (const idEdge of listEdges) {
+          const edge = edges.find(obj => obj.id === idEdge)
+          const origin = coordenatesPerOffice[edge.idCiudadI]
+          const destiny = coordenatesPerOffice[edge.idCiudadJ]
+          positions.push([[origin.latitud, origin.longitud], [destiny.latitud, destiny.longitud]])
+        }
+
+        setEdgesPositions(positions)
+      })
     })
+
   }, [])
 
   return (
@@ -97,7 +107,7 @@ const MapView = () => {
           })}
 
           {edgePositions.map((position, idx) => {
-            return (<Polyline key={`edge-${idx}`} positions={position} color={'yellow'} weight={0.5}/>)
+            return (<Polyline key={`edge-${idx}`} positions={position} color={'yellow'} />)
           })}
 
         </MapContainer>

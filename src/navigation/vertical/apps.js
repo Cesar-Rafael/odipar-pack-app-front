@@ -87,7 +87,7 @@ export default [
     title: 'Simulation',
     icon: <Map size={20} />,
     navLink: '/apps/simulation'
-  },
+  }
   /*
   {
     id: 'email',
@@ -175,7 +175,6 @@ export default [
       }
     ]
   },
-  */
   {
     id: 'users',
     title: 'User',
@@ -201,4 +200,5 @@ export default [
       }
     ]
   }
+  */
 ]
