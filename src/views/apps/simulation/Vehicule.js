@@ -1,5 +1,6 @@
 import { Marker, Popup } from 'react-leaflet'
 import axios from 'axios'
+import L from 'leaflet'
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 
 const VehiculeIcon = new L.Icon({
@@ -15,7 +16,7 @@ const VehiculeIcon = new L.Icon({
 // 0.5s - 9s
 // Valor de avance sería de 9s
 
-const Vehicule = ({ vehicule, offices, startedSimulation }) => {
+const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     const timeUpdateVehicules = 500 // cada 0.5 segundos (500 ms) se actualiza la posición: 500 / 1000
     const timeRealUpdateVehicules = 9
     const idIntervalVehicules = useRef(0)
@@ -68,6 +69,7 @@ const Vehicule = ({ vehicule, offices, startedSimulation }) => {
     }
 
     const startSimulation = async () => {
+        console.log('GAAAAA')
         clearInterval(idIntervalSimulation.current)
         idIntervalSimulation.current = 0
 
@@ -98,12 +100,12 @@ const Vehicule = ({ vehicule, offices, startedSimulation }) => {
         }
     }
 
-    useEffect(() => {
-        idIntervalSimulation.current = setInterval(() => {
-            console.log(startedSimulation)
-            if (startedSimulation) startSimulation()
-        }, 5000)
-    }, [])
+    useImperativeHandle(ref, () => {
+        return {
+            startSimulation,
+            endSimulation
+        }
+    })
 
     return (
         <Marker key={`vehicule-${vehicule.id}`} position={position} icon={VehiculeIcon}>
@@ -115,6 +117,6 @@ const Vehicule = ({ vehicule, offices, startedSimulation }) => {
             </Popup>
         </Marker>)
 
-}
+})
 
 export default Vehicule

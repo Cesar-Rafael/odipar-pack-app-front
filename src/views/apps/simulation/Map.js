@@ -24,11 +24,15 @@ const MapView = () => {
 
   const timeSimulation = 1640998200 // inicio de simulación 1640998200
   const timeUpdateAlgorithm = 300000 // cada 5 minutos se ejecuta el algoritmo (ms)
+  const totalVehicules = 45
 
   // Referencias
   const idIntervalEdges = useRef(0)
   const coordenatesPerOffice = useRef({})
-  //const vehiculesReferences = useRef([])
+  const vehiculesReferences = useRef([])
+  for (let i = 0; i < totalVehicules; i++) vehiculesReferences.current.push(useRef())
+
+  //const vehiculesReferences = useRef()
 
   // Estados
   const [offices, setOffices] = useState([])
@@ -49,13 +53,13 @@ const MapView = () => {
     const response = await axios.get('http://localhost:8080/UnidadTransporte/')
     const vehiculesResponse = response.data
     setVehicules(vehiculesResponse)
-    const totalVehicules = vehiculesResponse.length
-    //for (let i = 0; i < totalVehicules; i++) vehiculesReferences.current.push(useRef())
   }
 
-  useEffect(() => {
-    getOffices()
-    getVehicules()
+  useEffect(async () => {
+    await getOffices()
+    await getVehicules()
+
+    //for (let i = 0; i < totalVehicules.current; i++) vehiculesReferences.current.push(useRef())
 
     return () => {
       setOffices([])
@@ -84,12 +88,14 @@ const MapView = () => {
     const response = await axios.get('http://localhost:8080/ABCS/')
     if (response) {
       updateEdges()
+
+      for (let vehiculeReference of vehiculesReferences.current) vehiculeReference.current.startSimulation()
+      //vehiculesReferences.current.startSimulation()
+
       if (idIntervalEdges.current) {
         clearInterval(idIntervalEdges.current)
         idIntervalEdges.current = 0
       }
-
-      setStartedSimulation(true)
 
       idIntervalEdges.current = setInterval(() => {
         updateEdges()
@@ -127,7 +133,7 @@ const MapView = () => {
             </Marker>)
           })}
 
-          {vehicules.map((vehicule, idx) => <Vehicule key={`vehicule-${idx}`} vehicule={vehicule} offices={coordenatesPerOffice.current} startedSimulation={startedSimulation} />)}
+          {vehicules.map((vehicule, idx) => <Vehicule key={`vehicule-${idx}`} vehicule={vehicule} offices={coordenatesPerOffice.current} ref={vehiculesReferences.current[idx]} />)}
 
           {edgePositions.map((position, idx) => {
             return (<Polyline key={`edge-${idx}`} positions={position} color={'black'} />)
