@@ -1,17 +1,21 @@
-import { Col } from 'reactstrap'
+import { Row, Col } from 'reactstrap'
+import { Fragment } from 'react'
 import MapView from './Map'
+
 // ** Styles
-import '@styles/react/apps/app-users.scss'
+// import '@styles/react/apps/app-users.scss'
 
 
 const Simulation = () => {
   return (
-    <div className='app-simulation'>
-    <Col sm='12'>
-        <MapView/>
-    </Col>
-      
-    </div>
+    <Fragment>
+      {/*<Breadcrumbs breadCrumbTitle='Pedidos Registrados' breadCrumbParent='Páginas' breadCrumbActive='Listado' />*/}
+      <Row>
+        <Col sm='12'>
+          <MapView />
+        </Col>
+      </Row>
+    </Fragment>
   )
 }
 
