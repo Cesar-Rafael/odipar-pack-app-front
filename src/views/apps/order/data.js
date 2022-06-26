@@ -25,14 +25,8 @@ export const basicColumns = [
     maxWidth: '25px'
   },
   {
-    name: 'Cliente',
-    selector: 'nombreCompletoCliente',
-    sortable: true,
-    minWidth: '200px'
-  },
-  {
-    name: 'Correo Cliente',
-    selector: 'correoCliente',
+    name: 'RUC Cliente',
+    selector: 'rucCliente',
     sortable: true,
     minWidth: '200px'
   },
