@@ -10,7 +10,7 @@ import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 're
 // Valor de avance sería de 9s
 
 // NUEVO:
-// 5m - 1440m (24h)
+// 5m - 1440m (24h) 35m / 3 = 12m
 // 1m - 288m
 // 60s - 17280s
 // 1s - 288s

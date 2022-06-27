@@ -14,14 +14,14 @@ export default [
         title: 'List',
         icon: <Circle size={12} />,
         navLink: '/apps/order/list'
-      }
-      /*
-      {
-        id: 'view',
-        title: 'View',
-        icon: <Circle size={12} />,
-        navLink: '/apps/user/view'
       },
+      {
+        id: 'new',
+        title: 'Register',
+        icon: <Circle size={12} />,
+        navLink: '/apps/order/new'
+      },
+      /*
       {
         id: 'edit',
         title: 'Edit',

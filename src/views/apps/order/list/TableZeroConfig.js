@@ -13,13 +13,17 @@ import { Card, CardHeader, CardTitle } from 'reactstrap'
 const DataTablesBasic = () => {
   const [orders, setOrders] = useState([])
 
-  useEffect(() => {
-    axios.get('http://localhost:8080/Pedido/').then(response => {
-      setOrders(response.data.map(order => {
-        order.fechaHoraCreacion = moment(order.fechaHoraCreacion).format('DD/MM/YYYY HH:mm')
-        return order
-      }))
+  const getOrders = async () => {
+    const response = await axios.get('http://localhost:8080/Pedido/Listar')
+    const ordersResponse = response.data.map(order => {
+      order.fechaHoraCreacion = moment(order.fechaHoraCreacion).format('DD/MM/YYYY HH:mm')
+      return order
     })
+    setOrders(ordersResponse)
+  }
+
+  useEffect(async () => {
+    await getOrders()
   }, [])
 
   return (

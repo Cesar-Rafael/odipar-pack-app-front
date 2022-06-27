@@ -2,10 +2,13 @@ import { lazy } from 'react'
 import { Redirect } from 'react-router-dom'
 
 const AppRoutes = [
-  
   {
     path: '/apps/order/list',
     component: lazy(() => import('../../views/apps/order/list'))
+  },
+  {
+    path: '/apps/order/new',
+    component: lazy(() => import('../../views/apps/order/new'))
   },
   {
     path: '/apps/vehicle/list',
