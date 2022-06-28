@@ -3,8 +3,8 @@
 //Template config options
 const themeConfig = {
   app: {
-    appName: 'Vuexy',
-    appLogoImage: require('@src/assets/images/logo/logo.svg').default
+    appName: 'OdiparPack',
+    appLogoImage: require('@src/assets/images/logo/logo3.png').default
   },
   layout: {
     isRTL: false,

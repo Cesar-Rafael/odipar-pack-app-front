@@ -8,18 +8,18 @@ import { useState, useEffect, useRef, Fragment } from 'react'
 import axios from 'axios'
 import moment from 'moment'
 import Legend from './Legend'
-import API_URL from './../config'
 
 const MapView = () => {
   // Parámetros:
   const zoom = 5.5
   const position = [-12.51, -76.79]
 
+  const timeUpdateAlgorithm = 320000 // cada 5 minutos se ejecuta el algoritmo (ms) porque 30 segundos del tiempo de ejecución del algoritmo  
   const totalVehicules = 45
-  const totalTimeSimulation = 604800 // 7 dias en segundos
-  const totalRealTimeSimulation = 210000 // 35 minutos en milisegundos
+  const totalTimeSimulation = 604800
 
   // Referencias
+  const idIntervalEdges = useRef(0)
   const idTimeSimulation = useRef(0)
   const coordenatesPerOffice = useRef({})
   const ordersReference = useRef([])
@@ -48,7 +48,7 @@ const MapView = () => {
   const [map, setMap] = useState(null);
 
   const getOffices = async () => {
-    const response = await axios.get(`${API_URL}/Oficina/`)
+    const response = await axios.get('http://localhost:8080/Oficina/')
     const officesResponse = response.data
     setOffices(officesResponse)
     for (const office of officesResponse) {
@@ -57,21 +57,13 @@ const MapView = () => {
   }
 
   const getVehicules = async () => {
-    const response = await axios.get(`${API_URL}/UnidadTransporte/Listar/Operaciones`)
+    const response = await axios.get('http://localhost:8080/UnidadTransporte/')
     const vehiculesResponse = response.data
     setVehicules(vehiculesResponse)
   }
 
   const getBlocks = async (startDate, endDate) => {
-    const response = await axios.post(`${API_URL}/bloqueo/listar_por_fechas`, { inicio: startDate, fin: endDate })
-  }
-
-  const endSimulation = async () => {
-    setOffices([])
-    setVehicules([])
-    setEdgesPositions([])
-    clearInterval(idTimeSimulation.current)
-    await axios.get(`${API_URL}/simulacion/detener`)
+    const response = await axios.post(`http://localhost:8080/bloqueo/listar_por_fechas`, { inicio: startDate, fin: endDate })
   }
 
   useEffect(async () => {
@@ -125,15 +117,24 @@ const MapView = () => {
       velocidad: speed
     }
 
-    const response = await axios.post(`${API_URL}/ABCS/`, payload)
-    if (response.data) {
+    const response = await axios.post('http://localhost:8080/ABCS/', payload)
+    if (response) {
       await updateEdges()
-      await getBlocks(startTimeSimulation.current.toDate(), currentTimeSimulationRef.current.add(7, 'day').toDate())
+      await getBlocks(startTimeSimulation.current.toDate(), currentTimeSimulationRef.current.add(1, 'day').toDate())
       await routesTableRef.current.getRoutesData()
 
       for (let vehiculeReference of vehiculesReferences.current) {
         vehiculeReference.current.startSimulation(payload.velocidad)
       }
+
+      if (idIntervalEdges.current) {
+        clearInterval(idIntervalEdges.current)
+        idIntervalEdges.current = 0
+      }
+
+      idIntervalEdges.current = setInterval(() => {
+        updateEdges()
+      }, timeUpdateAlgorithm)
 
       if (idTimeSimulation.current) {
         clearInterval(idTimeSimulation.current)
@@ -145,10 +146,6 @@ const MapView = () => {
         setCurrentTimeSimulation(currentTime => moment(currentTime).add(timeUpdate.current, 'seconds'))
         setPercentageProgress(((currentTimeSimulationRef.current.unix() - startTimeSimulation.current.unix()) / totalTimeSimulation) * 100)
       }, 1000) // Avanza cada 1 segundo, 288 segundos
-
-      setTimeout(async () => {
-        await endSimulation()
-      }, parseInt(totalRealTimeSimulation / speed))
     }
 
     setShowLoaderButton(false)
@@ -158,9 +155,19 @@ const MapView = () => {
     setSpeed(e.currentTarget.value)
   }
 
-  const stopSimulation = async () => {
+  const endSimulation = async () => {
+    setOffices([])
+    setVehicules([])
+    setEdgesPositions([])
+    clearInterval(idIntervalEdges.current)
     clearInterval(idTimeSimulation.current)
-    await axios.get(`${API_URL}/simulacion/detener`)
+    await axios.get('http://localhost:8080/simulacion/detener')
+  }
+
+  const stopSimulation = async () => {
+    clearInterval(idIntervalEdges.current)
+    clearInterval(idTimeSimulation.current)
+    await axios.get('http://localhost:8080/simulacion/detener')
   }
 
   return (

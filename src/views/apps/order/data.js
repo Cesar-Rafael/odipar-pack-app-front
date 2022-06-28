@@ -8,7 +8,7 @@ const status = {
 }
 
 // ** Table Zero Config Column
-export const basicColumns = [
+export const multiLingColumns = [
   {
     name: 'ID',
     selector: 'id',

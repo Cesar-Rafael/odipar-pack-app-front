@@ -1,13 +1,17 @@
 import { Fragment } from 'react'
 import { Row, Col } from 'reactstrap'
-import HorizontalFormIcons from './HorizontalFormIcons'
+import RegisterIndividual from './Individual'
+import RegisterMasive from './Masive'
 
 const newOrder = () => {
   return (
     <Fragment>
       <Row>
         <Col md='6' sm='12'>
-          <HorizontalFormIcons />
+          <RegisterIndividual />
+        </Col>
+        <Col md='6' sm='12'>
+          <RegisterMasive />
         </Col>
       </Row>
     </Fragment>

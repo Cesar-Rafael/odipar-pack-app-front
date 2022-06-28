@@ -18,7 +18,7 @@ const DataTablesBasic = () => {
   //   })
   // }, [])
 
-  axios.get('http://localhost:8080/UnidadTransporte/').then(response => {
+  axios.get('/UnidadTransporte/Listar/Operaciones').then(response => {
       setVehicules(response.data)
     })
 

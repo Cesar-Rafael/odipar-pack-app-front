@@ -46,7 +46,7 @@ const AppRoutes = [
     meta: {
       navLink: '/apps/order/view'
     }
-  },*/
+  },
   {
     path: '/apps/email',
     exact: true,
@@ -211,7 +211,7 @@ const AppRoutes = [
     meta: {
       navLink: '/apps/user/view'
     }
-  }
+  }*/
 ]
 
 export default AppRoutes

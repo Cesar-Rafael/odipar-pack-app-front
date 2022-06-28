@@ -22,7 +22,7 @@ import { selectThemeColors } from '@utils'
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 
-const HorizontalFormIcons = () => {
+const RegisterIndividual = () => {
   const [registered, setRegistered] = useState(false)
   const [ruc, setRuc] = useState('')
   const [packages, setPackages] = useState('')
@@ -79,7 +79,7 @@ const HorizontalFormIcons = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle tag='h4'>Registro de Pedido</CardTitle>
+        <CardTitle tag='h4'>Registro Individual</CardTitle>
       </CardHeader>
       <CardBody>
         <Form>
@@ -156,4 +156,4 @@ const HorizontalFormIcons = () => {
     </Card>
   )
 }
-export default HorizontalFormIcons
+export default RegisterIndividual

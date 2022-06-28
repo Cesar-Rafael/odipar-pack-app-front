@@ -8,7 +8,7 @@ import Breadcrumbs from '@components/breadcrumbs'
 import { Row, Col } from 'reactstrap'
 
 // ** Tables
-import TableZeroConfig from './TableZeroConfig'
+import DataTableWithButtons from './ordersTable'
 
 // ** Styles
 import '@styles/react/libs/tables/react-dataTable-component.scss'
@@ -20,7 +20,7 @@ const Tables = () => {
       {/*<Breadcrumbs breadCrumbTitle='Pedidos Registrados' breadCrumbParent='Páginas' breadCrumbActive='Listado' />*/}
       <Row>
         <Col sm='12'>
-          <TableZeroConfig />
+          <DataTableWithButtons />
         </Col>
       </Row>
     </Fragment>

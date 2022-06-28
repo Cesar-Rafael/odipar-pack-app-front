@@ -16,15 +16,13 @@ const DataUpload = ({ loadOrders }) => {
             const line = text.split('\n')
             //01 00:56, 150101 =>  020501,  77, 000484
             for (let i = 0; i < line.length; i++) {
-                const part = line[i].split(/(\s+)/).filter(e => e.trim().length > 0)
-
-                if (+part[0] === 8) break // Solo leen los primeros 7 días
                 const date = new Date()
                 date.setMonth(mes)
                 date.setDate(currentDay + part[0] - 1)
                 const hora = part[1].split(":")
                 date.setHours(parseInt(hora[0]), parseInt(hora[1].slice(0, -1)))
 
+                const part = line[i].split(/(\s+)/).filter(e => e.trim().length > 0)
                 if (part.length < 1) break
                 const pedido = {
                     id: i,

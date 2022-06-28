@@ -28,6 +28,7 @@ const PagesRoutes = [
       authRoute: true
     }
   },
+  /*
   {
     path: '/pages/register-v1',
     component: lazy(() => import('../../views/pages/authentication/RegisterV1')),
@@ -164,7 +165,7 @@ const PagesRoutes = [
     meta: {
       publicRoute: true
     }
-  }
+  }*/
 ]
 
 export default PagesRoutes

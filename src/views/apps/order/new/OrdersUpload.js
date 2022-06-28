@@ -2,7 +2,7 @@
 import { Fragment } from 'react'
 import { FormGroup, Input } from 'reactstrap'
 
-const DataUpload = ({ loadOrders }) => {
+const OrdersUpload = ({ loadOrders }) => {
 
     const currentDate = new Date()
     const currentDay = currentDate.getDay()
@@ -47,15 +47,11 @@ const DataUpload = ({ loadOrders }) => {
     return (
         <Fragment>
             <FormGroup>
-                {/*<Label for='fileOrders'>Carga de Pedidos</Label> */}
-                <b>Carga de Pedidos:</b>
-                {/*
-                        <Input type='number' onChange={(e) => setMes(e.target.value)}></Input>
-                        */}
-                <Input type='file' id='fileOrders' name='fileOrders' onChange={pedidoMasivo} />
+              <Label for='inputFile'>Carga de archivo .csv</Label>
+              <Input type='file' id='inputFile' name='fileOrders' onChange={pedidoMasivo} />
             </FormGroup>
         </Fragment>
     )
 }
 
-export default DataUpload
+export default OrdersUpload

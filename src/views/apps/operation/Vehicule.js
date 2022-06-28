@@ -1,8 +1,15 @@
 import { Popup, CircleMarker } from 'react-leaflet'
 import axios from 'axios'
-import { useState, useRef, useImperativeHandle, forwardRef } from 'react'
-import API_URL from './../config'
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 
+// 5m - 1.5h
+// 1m - 18m
+// 60s - 1080s
+// 1s - 18s
+// 0.5s - 9s
+// Valor de avance sería de 9s
+
+// NUEVO:
 // 5m - 1440m (24h) 35m / 3 = 12m
 // 1m - 288m
 // 60s - 17280s
@@ -11,9 +18,11 @@ import API_URL from './../config'
 // Valor de avance sería de 144s en el algoritmo
 
 const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
+    const timeUpdateAlgorithm = 320000 // cada 5 minutos se ejecuta el algoritmo (ms)
     const timeUpdateVehicules = 500 // cada 0.5 segundos (500 ms) se actualiza la posición: 500 / 1000
     const timeRealUpdateVehicules = useRef(144) // Velocidad normal: x1.0
     const idIntervalVehicules = useRef(0)
+    const idIntervalSimulation = useRef(0)
 
     const [position, setPosition] = useState([vehicule.abscisa, vehicule.ordenada])
     const currentRoute = useRef(false)
@@ -22,7 +31,7 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     const steps = useRef([])
 
     const getRoutes = async (id) => {
-        const response = await axios.get(`${API_URL}/ruta/ListarRutasxIdVehiculoSimulacion/${id}`)
+        const response = await axios.get(`http://localhost:8080/ruta/ListarRutasxIdVehiculoSimulacion/${id}`)
         if (response.data.length) {
             routes.current = response.data
         }
@@ -70,6 +79,11 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
         // Setting parameters
         timeRealUpdateVehicules.current *= speed
 
+        if (idIntervalSimulation.current) {
+            clearInterval(idIntervalSimulation.current)
+            idIntervalSimulation.current = 0
+        }
+
         await getRoutes(vehicule.id)
 
         if (routes.current.length) {
@@ -84,26 +98,32 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
                 steps.current.length && setPosition(steps.current.shift())
             }, timeUpdateVehicules)
         }
+
+        idIntervalSimulation.current = setInterval(async () => {
+            await getRoutes(vehicule.id)
+
+            if (routes.current.length) {
+                calculatePositionVehicules()
+
+                // if (idIntervalVehicules.current) {
+                //     clearInterval(idIntervalVehicules.current)
+                //     idIntervalVehicules.current = 0
+                // }
+            }
+        }, timeUpdateAlgorithm)
     }
 
-    const stopSimulation = () => {
+    const endSimulation = () => {
         if (idIntervalVehicules.current) {
             clearInterval(idIntervalVehicules.current)
             idIntervalVehicules.current = 0
         }
     }
 
-    const resumeSimulation = () => {
-        idIntervalVehicules.current = setInterval(() => {
-            steps.current.length && setPosition(steps.current.shift())
-        }, timeUpdateVehicules)
-    }
-
     useImperativeHandle(ref, () => {
         return {
             startSimulation,
-            stopSimulation,
-            resumeSimulation
+            endSimulation
         }
     })
 
