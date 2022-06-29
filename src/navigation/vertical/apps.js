@@ -57,6 +57,32 @@ export default [
     ]
   },
   {
+    id: 'blocks',
+    title: 'Blocks',
+    icon: <Bookmark size={20} />,
+    children: [
+      {
+        id: 'list',
+        title: 'List',
+        icon: <Circle size={12} />,
+        navLink: '/apps/block/list'
+      }
+      /*
+      {
+        id: 'view',
+        title: 'View',
+        icon: <Circle size={12} />,
+        navLink: '/apps/user/view'
+      },
+      {
+        id: 'edit',
+        title: 'Edit',
+        icon: <Circle size={12} />,
+        navLink: '/apps/user/edit'
+      }*/
+    ]
+  },
+  {
     id: 'offices',
     title: 'Offices',
     icon: <Bookmark size={20} />,
