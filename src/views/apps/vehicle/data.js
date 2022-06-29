@@ -48,12 +48,6 @@ export const multiLingColumns = [
     }
   },
   {
-    name: 'Oficina Actual',
-    selector: 'oficinaActual',
-    sortable: true,
-    minWidth: '100px'
-  },
-  {
     name: 'Fecha de Mantenimiento',
     selector: 'fechaMantenimiento',
     sortable: true,

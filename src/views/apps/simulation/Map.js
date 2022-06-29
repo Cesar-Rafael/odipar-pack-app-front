@@ -9,6 +9,7 @@ import axios from 'axios'
 import moment from 'moment'
 import Legend from './Legend'
 import API_URL from './../config'
+import Timer from './Timer'
 
 const MapView = () => {
   // Parámetros:
@@ -17,7 +18,7 @@ const MapView = () => {
 
   const totalVehicules = 45
   const totalTimeSimulation = 604800 // 7 dias en segundos
-  const totalRealTimeSimulation = 210000 // 35 minutos en milisegundos
+  const totalRealTimeSimulation = 2100000 // 35 minutos en milisegundos
 
   // Referencias
   const idTimeSimulation = useRef(0)
@@ -45,10 +46,13 @@ const MapView = () => {
   const [percentageProgress, setPercentageProgress] = useState(0)
   const [blocks, setBlocks] = useState([])
   const [ordersTotal, setOrdersTotal] = useState(0)
-  const [map, setMap] = useState(null);
+  const [map, setMap] = useState(null)
+  const [timer, setTimer] = useState(null)
+  const [simulationFinished, setSimulationFinished] = useState(false)
+  const [simulationStopped, setSimulationStopped] = useState(false)
 
   const getOffices = async () => {
-    const response = await axios.get(`${API_URL}/Oficina/`)
+    const response = await axios.get(`${API_URL}/Oficina/Listar`)
     const officesResponse = response.data
     setOffices(officesResponse)
     for (const office of officesResponse) {
@@ -57,18 +61,19 @@ const MapView = () => {
   }
 
   const getVehicules = async () => {
-    const response = await axios.get(`${API_URL}/UnidadTransporte/Listar/Operaciones`)
+    const response = await axios.get(`${API_URL}/UnidadTransporte/Listar/Simulacion`)
     const vehiculesResponse = response.data
     setVehicules(vehiculesResponse)
   }
 
   const getBlocks = async (startDate, endDate) => {
     const response = await axios.post(`${API_URL}/bloqueo/listar_por_fechas`, { inicio: startDate, fin: endDate })
+    console.log(response.data)
   }
 
   const endSimulation = async () => {
-    setOffices([])
-    setVehicules([])
+    //setOffices([])
+    //setVehicules([])
     setEdgesPositions([])
     clearInterval(idTimeSimulation.current)
     await axios.get(`${API_URL}/simulacion/detener`)
@@ -80,6 +85,8 @@ const MapView = () => {
 
     return async () => {
       await endSimulation()
+      setOffices([])
+      setVehicules([])
       console.log('Unmounted')
     }
   }, [])
@@ -109,13 +116,11 @@ const MapView = () => {
       return
     }
 
-    startTimeSimulation.current = moment(new Date())
-    endTimeSimulation.current = moment(startTimeSimulation.current).add(7, 'days')
-    setCurrentTimeSimulation(moment(startTimeSimulation.current))
-    currentTimeSimulationRef.current = moment(startTimeSimulation.current)
-
     setShowButton(false)
     setShowLoaderButton(true)
+
+    startTimeSimulation.current = moment(new Date())
+    endTimeSimulation.current = moment(startTimeSimulation.current).add(7, 'days')
 
     timeUpdate.current *= speed
 
@@ -126,10 +131,15 @@ const MapView = () => {
     }
 
     const response = await axios.post(`${API_URL}/ABCS/`, payload)
+    console.log(response)
     if (response.data) {
+
       await updateEdges()
-      await getBlocks(startTimeSimulation.current.toDate(), currentTimeSimulationRef.current.add(7, 'day').toDate())
+      await getBlocks(moment(startTimeSimulation.current).toDate(), moment(startTimeSimulation.current).add(7, 'day').toDate())
       await routesTableRef.current.getRoutesData()
+
+      setCurrentTimeSimulation(moment(startTimeSimulation.current))
+      currentTimeSimulationRef.current = moment(startTimeSimulation.current)
 
       for (let vehiculeReference of vehiculesReferences.current) {
         vehiculeReference.current.startSimulation(payload.velocidad)
@@ -146,9 +156,10 @@ const MapView = () => {
         setPercentageProgress(((currentTimeSimulationRef.current.unix() - startTimeSimulation.current.unix()) / totalTimeSimulation) * 100)
       }, 1000) // Avanza cada 1 segundo, 288 segundos
 
-      setTimeout(async () => {
+      setTimer(new Timer(async () => {
+        setSimulationFinished(true)
         await endSimulation()
-      }, parseInt(totalRealTimeSimulation / speed))
+      }, parseInt(totalRealTimeSimulation / speed)))
     }
 
     setShowLoaderButton(false)
@@ -160,14 +171,35 @@ const MapView = () => {
 
   const stopSimulation = async () => {
     clearInterval(idTimeSimulation.current)
-    await axios.get(`${API_URL}/simulacion/detener`)
+    timer.pause()
+    for (let vehiculeReference of vehiculesReferences.current) {
+      vehiculeReference.current.stopSimulation()
+    }
+    setSimulationStopped(true)
+  }
+
+  const resumeSimulation = async () => {
+    idTimeSimulation.current = setInterval(() => {
+      currentTimeSimulationRef.current.add(timeUpdate.current, 'seconds')
+      setCurrentTimeSimulation(currentTime => moment(currentTime).add(timeUpdate.current, 'seconds'))
+      setPercentageProgress(((currentTimeSimulationRef.current.unix() - startTimeSimulation.current.unix()) / totalTimeSimulation) * 100)
+    }, 1000)
+
+    timer.resume()
+
+    for (let vehiculeReference of vehiculesReferences.current) {
+      vehiculeReference.current.resumeSimulation()
+    }
+
+    setSimulationStopped(false)
   }
 
   return (
     <Card>
       <CardHeader>
         <Col xs='6'>
-          <CardTitle tag='h3'><b>Simulación 7 días</b></CardTitle>
+          <CardTitle tag='h3'><b>Simulación 7 días</b>
+          </CardTitle>
         </Col>
         {
           showButton ?
@@ -184,38 +216,28 @@ const MapView = () => {
             </Col> : ''
         }
         {
-          !showButton && !showLoaderButton ?
-            <Fragment>
-              <Col xs='3' className='text-right'>
-                <Alert color='success'>
-                  <h4 className='alert-heading'>Simulación Iniciada</h4>
-                </Alert>
-              </Col>
-              <Col xs='3' className='text-right'>
-                <Button color='danger' onClick={stopSimulation}>Detener Simulacion</Button>
-              </Col>
-            </Fragment>
+          !showButton && !showLoaderButton && !simulationFinished ?
+            <Col xs='6' className='text-right'>
+              <Button className='mr-2' color='primary' onClick={stopSimulation} disabled={simulationStopped}>Pausar Simulacion</Button>
+              <Button color='info' onClick={resumeSimulation} disabled={!simulationStopped}>Reanudar Simulacion</Button>
+            </Col>
             : ''
         }
       </CardHeader>
       <CardBody>
         <Row className='mb-1'>
           <Col xs='4'>
-            <DataUpload loadOrders={setOrders} />
+            <DataUpload loadOrders={setOrders} offices={offices} />
           </Col>
           <Col xs='4'>
-            <Label className='mr-2'>
-              <b>Cantidad de Pedidos:</b>
-            </Label>
             <FormGroup check inline>
+              <b className='mr-2'>Cantidad de Pedidos:</b>
               {ordersTotal}
             </FormGroup>
           </Col>
           <Col xs='4'>
-            <Label className='mr-2'>
-              <b>Velocidad:</b>
-            </Label>
             <FormGroup check inline>
+              <b className='mr-2'>Velocidad:</b>
               <Label check>
                 <Input type='radio' name='speed' value={1} defaultChecked onChange={setSpeedValue} /> x1.0
               </Label>
@@ -237,7 +259,7 @@ const MapView = () => {
           </Col>
           <Col xs='4'>
             <b>Tiempo Actual Simulacion:</b> <br />
-            <b style={{ fontSize: 18 }}>
+            <b style={{ fontSize: 18, borderStyle: 'dotted' }}>
               {currentTimeSimulation ? currentTimeSimulation.format('DD/MM/YYYY h:mm a') : '-'}
             </b>
           </Col>
@@ -252,7 +274,7 @@ const MapView = () => {
           </Col>
         </Row>
         <Row>
-          <Col xs='7'>
+          <Col xs='6'>
             <MapContainer center={position} zoom={zoom} className='leaflet-map' style={{ height: "100vh" }} scrollWheelZoom={true}
               whenCreated={setMap}>
               <TileLayer
@@ -283,7 +305,7 @@ const MapView = () => {
 
             </MapContainer>
           </Col>
-          <Col xs='5'>
+          <Col xs='6'>
             <TableExpandable key='table-1' ref={routesTableRef} />
           </Col>
         </Row>

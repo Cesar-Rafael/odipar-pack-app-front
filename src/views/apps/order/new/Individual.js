@@ -16,42 +16,23 @@ import {
   Alert
 } from 'reactstrap'
 import Select from 'react-select'
-import { User, Smartphone, Package } from 'react-feather'
+import { User, Package } from 'react-feather'
 
 import { selectThemeColors } from '@utils'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import axios from 'axios'
 
-const RegisterIndividual = () => {
+const RegisterIndividual = ({ offices }) => {
   const [registered, setRegistered] = useState(false)
   const [ruc, setRuc] = useState('')
   const [packages, setPackages] = useState('')
   const [office, setOffice] = useState(null)
-  const [offices, setOffices] = useState([])
-
-  const getOffices = async () => {
-    const response = await axios.get('http://localhost:8080/Oficina/')
-    setOffices(response.data.filter(x => !x.esPrincipal).map(office => {
-      return {
-        value: office.ubigeo,
-        label: office.provincia
-      }
-    }))
-  }
 
   const resetValues = () => {
     setRuc('')
     setPackages('')
     setOffice(null)
   }
-
-  useEffect(async () => {
-    await getOffices()
-
-    return async () => {
-      setOffices([])
-    }
-  }, [])
 
   const registerOrder = async (event) => {
     event.preventDefault()
@@ -74,7 +55,6 @@ const RegisterIndividual = () => {
       }, 3500)
     }
   }
-
 
   return (
     <Card>
@@ -147,7 +127,7 @@ const RegisterIndividual = () => {
           {registered ? <FormGroup row>
             <Col xs='12' className='text-center'>
               <Alert color='success'>
-                <h4 className='alert-heading'>Pedido Registrado</h4>
+                <h4 className='alert-heading'>Pedido Registrado Exitosamente</h4>
               </Alert>
             </Col>
           </FormGroup> : ''}

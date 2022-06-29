@@ -8,11 +8,14 @@ import API_URL from './../config'
 // 60s - 17280s
 // 1s - 288s
 // 0.5s - 144s
+// 0.1s - 29s
 // Valor de avance sería de 144s en el algoritmo
 
 const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
-    const timeUpdateVehicules = 500 // cada 0.5 segundos (500 ms) se actualiza la posición: 500 / 1000
-    const timeRealUpdateVehicules = useRef(144) // Velocidad normal: x1.0
+    //const timeUpdateVehicules = 500 // cada 0.5 segundos (500 ms) se actualiza la posición: 500 / 1000
+    const timeUpdateVehicules = 100 // cada 0.1 segundos (500 ms) se actualiza la posición: 500 / 1000
+    //const timeRealUpdateVehicules = useRef(144) // Velocidad normal: x1.0
+    const timeRealUpdateVehicules = useRef(29) // Velocidad normal: x1.0
     const idIntervalVehicules = useRef(0)
 
     const [position, setPosition] = useState([vehicule.abscisa, vehicule.ordenada])

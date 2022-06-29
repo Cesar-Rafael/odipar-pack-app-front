@@ -12,7 +12,6 @@ import DataTable from 'react-data-table-component'
 import { Card, CardHeader, CardTitle, Input, Label, Row, Col } from 'reactstrap'
 
 import axios from 'axios'
-import moment from 'moment'
 import API_URL from '../../config'
 
 const DataTableWithButtons = () => {
@@ -22,18 +21,18 @@ const DataTableWithButtons = () => {
   const [filteredData, setFilteredData] = useState([])
   const [data, setData] = useState([])
 
-  const getVehicles = async () => {
-    const response = await axios.get(`${API_URL}/UnidadTransporte/Listar/Operaciones`)
-    setData(response.data.map(vehicle => {
-      vehicle.fechaMantenimiento = moment(vehicle.fechaMantenimiento).format('DD/MM/YYYY HH:mm')
-      vehicle.capacidadTotal = vehicle.capacidadTotal.toString()
-      vehicle.capacidadDisponible = vehicle.capacidadDisponible.toString()
-      return vehicle
+  const getOffices = async () => {
+    const response = await axios.get(`${API_URL}/Oficina/Listar`)
+    setData(response.data.map(office => {
+      office.ubigeo = office.ubigeo.toString()
+      office.tipo = office.esPrincipal ? 'ALMACEN' : 'OFICINA'
+      delete office.esPrincipal
+      return office
     }))
   }
 
   useEffect(async () => {
-    await getVehicles()
+    await getOffices()
 
     return () => {
       setData([])
@@ -52,30 +51,31 @@ const DataTableWithButtons = () => {
     setSearchValue(value)
 
     const status = {
-      DISPONIBLE: { title: 'Disponible', color: 'light-success' },
-      RESERVADO: { title: 'Reservado', color: 'light-primary' },
-      EN_TRANSITO: { title: 'En Tránsito', color: 'light-info' },
-      AVERIADO: { title: 'Averiado', color: 'light-danger' },
-      EN_MANTENIMIENTO: { title: 'En Mantenimiento', color: 'light-danger' },
+      ALMACEN: { title: 'Almacén', color: 'light-primary' },
+      OFICINA: { title: 'Oficina', color: 'light-info' }
+    }
+
+    const statusRegion = {
+      COSTA: { title: 'Costa', color: 'light-warning' },
+      SIERRA: { title: 'Sierra', color: 'light-info' },
+      SELVA: { title: 'Selva', color: 'light-success' }
     }
 
     if (value.length) {
       updatedData = data.filter(item => {
         const startsWith =
-          item.codigo.toLowerCase().startsWith(value.toLowerCase()) ||
-          item.capacidadTotal.toLowerCase().startsWith(value.toLowerCase()) ||
-          item.capacidadDisponible.toLowerCase().startsWith(value.toLowerCase()) ||
-          item.oficinaActual.toLowerCase().startsWith(value.toLowerCase()) ||
-          item.fechaMantenimiento.toLowerCase().startsWith(value.toLowerCase()) ||
-          status[item.estado].title.toLowerCase().startsWith(value.toLowerCase())
+          item.ubigeo.toLowerCase().startsWith(value.toLowerCase()) ||
+          item.departamento.toLowerCase().startsWith(value.toLowerCase()) ||
+          item.provincia.toLowerCase().startsWith(value.toLowerCase()) ||
+          status[item.tipo].title.toLowerCase().startsWith(value.toLowerCase())
+          statusRegion[item.region].title.toLowerCase().startsWith(value.toLowerCase())
 
         const includes =
-          item.codigo.toLowerCase().includes(value.toLowerCase()) ||
-          item.capacidadTotal.toLowerCase().includes(value.toLowerCase()) ||
-          item.capacidadDisponible.toLowerCase().includes(value.toLowerCase()) ||
-          item.oficinaActual.toLowerCase().includes(value.toLowerCase()) ||
-          item.fechaMantenimiento.toLowerCase().includes(value.toLowerCase()) ||
-          status[item.estado].title.toLowerCase().includes(value.toLowerCase())
+          item.ubigeo.toLowerCase().includes(value.toLowerCase()) ||
+          item.departamento.toLowerCase().includes(value.toLowerCase()) ||
+          item.provincia.toLowerCase().includes(value.toLowerCase()) ||
+          status[item.tipo].title.toLowerCase().includes(value.toLowerCase())
+          statusRegion[item.region].title.toLowerCase().includes(value.toLowerCase())
 
         if (startsWith) {
           return startsWith
@@ -137,7 +137,7 @@ const DataTableWithButtons = () => {
   return (
     <Card>
       <CardHeader className='border-bottom'>
-        <CardTitle tag='h4'>Vehiculos Registrados</CardTitle>
+        <CardTitle tag='h4'>Oficinas Registrados</CardTitle>
       </CardHeader>
       <Row className='justify-content-end mx-0'>
         <Col className='d-flex align-items-center justify-content-end mt-1' md='6' sm='12'>

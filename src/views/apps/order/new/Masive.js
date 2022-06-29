@@ -9,72 +9,67 @@ import {
   Form,
   Button,
   Label,
-  CustomInput,
-  InputGroup,
-  InputGroupAddon,
-  InputGroupText,
   Alert
 } from 'reactstrap'
-import Select from 'react-select'
-import { User, Smartphone, Package } from 'react-feather'
-
-import { selectThemeColors } from '@utils'
-import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 
-const RegisterMasive= () => {
+import { useState } from 'react'
+
+import API_URL from '../../config'
+
+const RegisterMasive = ({ offices }) => {
   const [registered, setRegistered] = useState(false)
-  const [ruc, setRuc] = useState('')
-  const [packages, setPackages] = useState('')
-  const [office, setOffice] = useState(null)
-  const [offices, setOffices] = useState([])
+  const [ordersToRegister, setOrdersToRegister] = useState([])
 
-  const getOffices = async () => {
-    const response = await axios.get('http://localhost:8080/Oficina/')
-    setOffices(response.data.filter(x => !x.esPrincipal).map(office => {
-      return {
-        value: office.ubigeo,
-        label: office.provincia
-      }
-    }))
+  const getNameOffice = (ubigeo) => {
+    const office = offices.find(o => o.value === ubigeo)
+    return office !== undefined ? office.label : ''
   }
 
-  const resetValues = () => {
-    setRuc('')
-    setPackages('')
-    setOffice(null)
-  }
-
-  useEffect(async () => {
-    await getOffices()
-
-    return async () => {
-      setOffices([])
-    }
-  }, [])
-
-  const registerOrder = async (event) => {
+  const registerOrders = async (event) => {
     event.preventDefault()
-    const order = {
-      rucCliente: +ruc,
-      cantPaquetes: +packages,
-      cantPaquetesNoAsignado: +packages,
-      idCiudadDestino: office.value,
-      ciudadDestino: office.label,
-      fechaHoraCreacion: new Date(),
-      estado: 0
-    }
 
-    const response = await axios.post('http://localhost:8080/Pedido/Insertar', order)
-    if (response.data.id >= 0) {
+    const response = await axios.post(`${API_URL}/Pedido/Insertar/Masivo`, ordersToRegister)
+    if (response.data) {
       setRegistered(true)
-      resetValues()
+      setOrdersToRegister([])
       setTimeout(() => {
         setRegistered(false)
       }, 3500)
     }
   }
 
+  const readOrdersFile = (e) => {
+    e.preventDefault()
+
+    const reader = new FileReader()
+    reader.onload = e => {
+      const orders = []
+      const text = e.target.result
+      const lines = text.split('\r\n')
+      lines.shift()
+      const fechaHoraCreacion = new Date()
+      for (const line of lines) {
+        const [rucCliente, cantPaquetes, idCiudadDestino] = line.split(';')
+        const ciudadDestino = getNameOffice(+idCiudadDestino)
+        orders.push({
+          rucCliente: +rucCliente,
+          cantPaquetes: +cantPaquetes,
+          cantPaquetesNoAsignado: +cantPaquetes,
+          idCiudadDestino: +idCiudadDestino,
+          ciudadDestino,
+          fechaHoraCreacion,
+          estado: 0
+        })
+      }
+
+      e.target.value = null;
+
+      setOrdersToRegister(orders)
+    }
+
+    reader.readAsText(e.target.files[0])
+  }
 
   return (
     <Card>
@@ -83,71 +78,31 @@ const RegisterMasive= () => {
       </CardHeader>
       <CardBody>
         <Form>
-          <FormGroup row>
-            <Label sm='3' for='nameIcons'>
-              RUC Cliente
-            </Label>
-            <Col sm='9'>
-              <InputGroup className='input-group-merge'>
-                <InputGroupAddon addonType='prepend'>
-                  <InputGroupText>
-                    <User size={15} />
-                  </InputGroupText>
-                </InputGroupAddon>
-                <Input type='number' value={ruc} placeholder='RUC' onChange={e => setRuc(e.target.value)} />
-              </InputGroup>
-            </Col>
-          </FormGroup>
-
-          <FormGroup row>
-            <Label sm='3' for='EmailIcons'>
-              Paquetes
-            </Label>
-            <Col sm='9'>
-              <InputGroup className='input-group-merge'>
-                <InputGroupAddon addonType='prepend'>
-                  <InputGroupText>
-                    <Package size={15} />
-                  </InputGroupText>
-                </InputGroupAddon>
-                <Input type='number' value={packages} placeholder='Cantidad' onChange={e => setPackages(e.target.value)} />
-              </InputGroup>
-            </Col>
-          </FormGroup>
-
-          <FormGroup row>
-            <Label sm='3'>
-              Oficina
-            </Label>
-            <Col className='mb-1' md='9' sm='9'>
-              <Select
-                theme={selectThemeColors}
-                className='react-select'
-                classNamePrefix='select'
-                options={offices}
-                isClearable={false}
-                value={office}
-                onChange={setOffice}
-              />
-            </Col>
+          <FormGroup>
+            <Label for='ordersFile'>Carga de Archivo CSV</Label>
+            <Input type='file' id='ordersFile' name='ordersFile' onChange={readOrdersFile} />
           </FormGroup>
 
           <FormGroup className='mb-1' row>
             <Col className='d-flex' md={{ size: 9, offset: 3 }}>
-              <Button.Ripple className='mr-1' color='primary' type='submit' onClick={registerOrder}>
+              <Button.Ripple className='mr-1' color='primary' type='submit' onClick={registerOrders}>
                 Registrar
-              </Button.Ripple>
-              <Button.Ripple outline color='secondary' type='reset'>
-                Limpiar
               </Button.Ripple>
             </Col>
           </FormGroup>
 
+          {ordersToRegister.length ? <FormGroup row>
+            <Col xs='12' className='text-center'>
+              <Alert color='info'>
+                <h4 className='alert-heading'>Cantidad de Pedidos: {ordersToRegister.length}</h4>
+              </Alert>
+            </Col>
+          </FormGroup> : ''}
 
           {registered ? <FormGroup row>
             <Col xs='12' className='text-center'>
               <Alert color='success'>
-                <h4 className='alert-heading'>Pedido Registrado</h4>
+                <h4 className='alert-heading'>Pedidos Registrados Exitosamente</h4>
               </Alert>
             </Col>
           </FormGroup> : ''}
