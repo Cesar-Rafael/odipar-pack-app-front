@@ -13,8 +13,8 @@ const AppRoutes = [
     component: lazy(() => import('../../views/apps/order/list'))
   },
   {
-    path: '/apps/block/add',
-    component: lazy(() => import('../../views/apps/block/add'))
+    path: '/apps/block/list',
+    component: lazy(() => import('../../views/apps/block/list'))
   },
   /*
   {
