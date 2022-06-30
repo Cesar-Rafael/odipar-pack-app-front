@@ -9,16 +9,18 @@ import API_URL from './../config'
 // 1s - 288s
 // 0.5s - 144s
 // 0.1s - 29s
+// 0.25s - 77s
 // Valor de avance sería de 144s en el algoritmo
 
 const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
-    //const timeUpdateVehicules = 500 // cada 0.5 segundos (500 ms) se actualiza la posición: 500 / 1000
-    const timeUpdateVehicules = 100 // cada 0.1 segundos (500 ms) se actualiza la posición: 500 / 1000
-    //const timeRealUpdateVehicules = useRef(144) // Velocidad normal: x1.0
+    const timeUpdateVehicules = 100 // cada 0.25 segundos se actualiza la posición (ms)
     const timeRealUpdateVehicules = useRef(29) // Velocidad normal: x1.0
     const idIntervalVehicules = useRef(0)
 
     const [position, setPosition] = useState([vehicule.abscisa, vehicule.ordenada])
+    const lastPosition = useRef([vehicule.abscisa, vehicule.ordenada])
+    const startTimeSimulation = useRef(0)
+    const endTimeSimulation = useRef(0)
     const currentRoute = useRef(false)
     const routesCompleted = useRef(0)
     const routes = useRef([])
@@ -28,6 +30,7 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
         const response = await axios.get(`${API_URL}/ruta/ListarRutasxIdVehiculoSimulacion/${id}`)
         if (response.data.length) {
             routes.current = response.data
+            currentRoute.current = routes.current[0]
         }
     }
 
@@ -52,31 +55,53 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     }
 
     const calculatePositionVehicules = () => {
-        while (routes.current.length > routesCompleted.current) {
-            currentRoute.current = routes.current[routesCompleted.current]
-            const tiemposLlegada = currentRoute.current.arrayHorasLlegada
-            const oficinas = currentRoute.current.arraySeguimiento
+        const tiemposLlegada = currentRoute.current.arrayHorasLlegada
+        const oficinas = currentRoute.current.arraySeguimiento
 
-            for (let i = 0; i < tiemposLlegada.length - 1; i++) {
-                if (tiemposLlegada[i + 1] <= tiemposLlegada[i]) {
-                    console.log(currentRoute.current.idRuta)
-                    break
-                }
-                calculatePositions(offices[oficinas[i]], offices[oficinas[i + 1]], tiemposLlegada[i + 1] - tiemposLlegada[i] - (i === 0 ? 0 : 3600))
+        for (let i = 0; i < tiemposLlegada.length - 1; i++) {
+            if (tiemposLlegada[i + 1] <= tiemposLlegada[i]) {
+                console.log(currentRoute.current.idRuta)
+                break
             }
-
-            routesCompleted.current++
+            calculatePositions(offices[oficinas[i]], offices[oficinas[i + 1]], tiemposLlegada[i + 1] - tiemposLlegada[i] - (i === 0 ? 0 : 3600))
         }
+
+        routesCompleted.current++
+
+        if (routesCompleted.current < routes.current.length) currentRoute.current = routes.current[routesCompleted.current]
+        return steps.current.slice(-1)
     }
 
-    const startSimulation = async (speed) => {
-        // Setting parameters
+    const calculateAllPositions = () => {
+        let startTime = currentRoute.current.arrayHorasLlegada[0]
+        let endTime = currentRoute.current.arrayHorasLlegada.slice(-1)
+        for (let currentTime = startTimeSimulation.current; currentTime < endTimeSimulation.current; currentTime += timeRealUpdateVehicules) {
+            if (startTime <= currentTime && currentTime < endTime) {
+                const lastPositionCalculated = calculatePositionVehicules()
+                lastPosition.current = lastPositionCalculated
+                startTime = currentRoute.current.arrayHorasLlegada[0]
+                endTime = currentRoute.current.arrayHorasLlegada.slice(-1)
+                currentTime = endTime
+            } else {
+                steps.current.push(lastPosition.current)
+            }
+        }
+
+    }
+
+    const startSimulation = async (speed, startTime, endTime) => {
+        // Setting parameters   
         timeRealUpdateVehicules.current *= speed
+        timeUpdateVehicules.current *= speed
+        startTimeSimulation.current = startTime
+        endTimeSimulation.current = endTime
 
         await getRoutes(vehicule.id)
 
         if (routes.current.length) {
-            calculatePositionVehicules()
+
+            //calculatePositionVehicules()
+            calculateAllPositions()
 
             if (idIntervalVehicules.current) {
                 clearInterval(idIntervalVehicules.current)
@@ -85,6 +110,10 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
 
             idIntervalVehicules.current = setInterval(() => {
                 steps.current.length && setPosition(steps.current.shift())
+                if (steps.current.length === 0) {
+                    clearInterval(idIntervalVehicules.current)
+                    idIntervalVehicules.current = 0
+                }
             }, timeUpdateVehicules)
         }
     }
