@@ -1,4 +1,4 @@
-import { Mail, MessageSquare, CheckSquare, Calendar, FileText, Circle, ShoppingCart, User, Package, Bookmark, Map} from 'react-feather'
+import { Lock, Package, Bookmark, Map, Circle } from 'react-feather'
 
 export default [
   {
@@ -59,7 +59,7 @@ export default [
   {
     id: 'blocks',
     title: 'Blocks',
-    icon: <Bookmark size={20} />,
+    icon: <Lock size={20} />,
     children: [
       {
         id: 'list',

@@ -63,7 +63,7 @@ const RegisterMasive = ({ offices }) => {
         })
       }
 
-      e.target.value = null;
+      e.target.value = null
 
       setOrdersToRegister(orders)
     }
