@@ -92,6 +92,7 @@ const DataTableWithButtons = () => {
 
       setBlocks(bloques)
     }
+    
     reader.readAsText(e.target.files[0])
   }
 

@@ -1,4 +1,6 @@
-import { Badge } from "reactstrap"
+import { Badge } from 'reactstrap'
+
+import { Link } from 'react-router-dom'
 
 const status = {
   DISPONIBLE: { title: 'Disponible', color: 'light-success' },
@@ -52,5 +54,26 @@ export const multiLingColumns = [
     selector: 'fechaMantenimiento',
     sortable: true,
     minWidth: '180px'
+  },
+  {
+    name: 'Acciones',
+    minWidth: '100px',
+    cell: row => (
+      <UncontrolledDropdown>
+        <DropdownToggle tag='div' className='btn btn-sm'>
+          <MoreVertical size={14} className='cursor-pointer' />
+        </DropdownToggle>
+        <DropdownMenu right>
+          <DropdownItem
+            tag={Link}
+            to={`/apps/vehicle/view/${row.id}`}
+            className='w-100'
+          >
+            <FileText size={14} className='mr-50' />
+            <span className='align-middle'>Ver Plan</span>
+          </DropdownItem>
+        </DropdownMenu>
+      </UncontrolledDropdown>
+    )
   }
 ]

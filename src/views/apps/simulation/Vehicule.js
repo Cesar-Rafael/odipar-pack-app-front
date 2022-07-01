@@ -6,6 +6,7 @@ import API_URL from './../config'
 // 5m - 1440m (24h) 35m / 3 = 12m
 // 1m - 288m
 // 60s - 17280s
+// 2s - 576
 // 1s - 288s
 // 0.5s - 144s
 // 0.1s - 29s
@@ -13,7 +14,7 @@ import API_URL from './../config'
 // Valor de avance sería de 144s en el algoritmo
 
 const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
-    const timeUpdateVehicules = 100 // cada 0.25 segundos se actualiza la posición (ms)
+    const timeUpdateVehicules = useRef(100) // cada 0.25 segundos se actualiza la posición (ms)
     const timeRealUpdateVehicules = useRef(29) // Velocidad normal: x1.0
     const idIntervalVehicules = useRef(0)
 
@@ -89,12 +90,10 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
 
     }
 
-    const startSimulation = async (speed, startTime, endTime) => {
+    const startSimulation = async (speed) => {
         // Setting parameters   
         timeRealUpdateVehicules.current *= speed
         timeUpdateVehicules.current *= speed
-        startTimeSimulation.current = startTime
-        endTimeSimulation.current = endTime
 
         await getRoutes(vehicule.id)
 
@@ -114,8 +113,12 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
                     clearInterval(idIntervalVehicules.current)
                     idIntervalVehicules.current = 0
                 }
-            }, timeUpdateVehicules)
+            }, timeUpdateVehicules.current)
         }
+    }
+
+    const addRoutes = async () => {
+
     }
 
     const stopSimulation = () => {
@@ -128,7 +131,7 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     const resumeSimulation = () => {
         idIntervalVehicules.current = setInterval(() => {
             steps.current.length && setPosition(steps.current.shift())
-        }, timeUpdateVehicules)
+        }, timeUpdateVehicules.current)
     }
 
     useImperativeHandle(ref, () => {

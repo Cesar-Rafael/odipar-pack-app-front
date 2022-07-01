@@ -1,4 +1,4 @@
-import { useState, forwardRef, useImperativeHandle, Fragment } from 'react'
+import { useState, forwardRef, useImperativeHandle, Fragment, useRef } from 'react'
 
 import { FormattedMessage } from 'react-intl'
 import ExpandableTable, { columns } from './data'
@@ -9,6 +9,12 @@ import DataTable from 'react-data-table-component'
 import { Card, CardHeader, CardTitle, Row, Col, Label, Input } from 'reactstrap'
 
 import axios from 'axios'
+
+//
+// 5m - 1440m (24h) 35m / 3 = 12m
+// 1m - 288m
+
+// 
 
 const DataTableWithButtons = forwardRef((props, ref) => {
   // ** State
@@ -49,6 +55,11 @@ const DataTableWithButtons = forwardRef((props, ref) => {
     }
   }
 
+  // pedidos
+  // inicioSimulacion
+  // finalizado = false o true (true)
+  // 
+
   const getPackagesPerOffice = (orders, ubigeo) => {
     let packages = 0
     for (let order of orders) {
@@ -67,15 +78,16 @@ const DataTableWithButtons = forwardRef((props, ref) => {
         let totalPackages = 0
 
         const offices = currentData.arraySeguimiento
+        const officesNames = currentData.nombreProvincias
         const times = currentData.arrayHorasLlegada
-        const orders = currentData.nombreProvincias
+        const orders = currentData.pedidos
         const packages = getPackagesPerOffice(orders, offices[1])
         totalPackages += packages
 
         const routes = [{
-          origin: offices[0],
+          origin: officesNames[0],
           originTime: times[0],
-          destiny: offices[1],
+          destiny: officesNames[1],
           destinyTime: times[1],
           packages
         }]
@@ -84,9 +96,9 @@ const DataTableWithButtons = forwardRef((props, ref) => {
           const packages = getPackagesPerOffice(orders, offices[j + 1])
           totalPackages += packages
           routes.push({
-            origin: offices[j],
+            origin: officesNames[j],
             originTime: times[j] + 3600,
-            destiny: offices[j + 1],
+            destiny: officesNames[j + 1],
             destinyTime: times[j + 1],
             packages
           })
