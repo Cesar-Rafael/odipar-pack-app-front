@@ -6,9 +6,10 @@ import ExpandableTable, { columns } from './data'
 import ReactPaginate from 'react-paginate'
 import { ChevronDown } from 'react-feather'
 import DataTable from 'react-data-table-component'
-import { Card, CardHeader, CardTitle, Row, Col, Label, Input } from 'reactstrap'
+import { Card, CardHeader, CardTitle, Row, Col, Label, Input, FormGroup, Alert } from 'reactstrap'
 
 import axios from 'axios'
+import API_URL from '../config'
 
 //
 // 5m - 1440m (24h) 35m / 3 = 12m
@@ -22,6 +23,8 @@ const DataTableWithButtons = forwardRef((props, ref) => {
   const [searchValue, setSearchValue] = useState('')
   const [filteredData, setFilteredData] = useState([])
   const [data, setData] = useState([])
+  const [newRoutes, setNewRoutes] = useState(false)
+  const [loadingRoutes, setLoadingRoutes] = useState(false)
 
   // ** Function to handle pagination
   const handlePagination = page => {
@@ -69,7 +72,8 @@ const DataTableWithButtons = forwardRef((props, ref) => {
   }
 
   const getRoutesData = async () => {
-    const response = await axios.get(`http://localhost:8080/ruta/simulacion/listar`)
+    setLoadingRoutes(true)
+    const response = await axios.get(`${API_URL}/ruta/simulacion/listar`)
     if (response.data) {
       const dataResponse = response.data
       const newData = []
@@ -112,7 +116,12 @@ const DataTableWithButtons = forwardRef((props, ref) => {
         })
       }
 
+      setLoadingRoutes(false)
       setData(newData)
+      setNewRoutes(true)
+      setTimeout(() => {
+        setNewRoutes(false)
+      }, 3500)
     }
   }
 
@@ -172,6 +181,20 @@ const DataTableWithButtons = forwardRef((props, ref) => {
     <Card>
       <CardHeader>
         <CardTitle tag='h4'>Rutas Asignadas</CardTitle>
+        {newRoutes ? <FormGroup row>
+          <Col xs='12' className='text-center'>
+            <Alert color='success'>
+              <h4 className='alert-heading'>Rutas Agregadas</h4>
+            </Alert>
+          </Col>
+        </FormGroup> : ''}
+        {loadingRoutes ? <FormGroup row>
+          <Col xs='12' className='text-center'>
+            <Alert color='info'>
+              <h4 className='alert-heading'>Generando Rutas</h4>
+            </Alert>
+          </Col>
+        </FormGroup> : ''}
       </CardHeader>
 
       <Row className='justify-content-end mx-0'>
@@ -196,7 +219,7 @@ const DataTableWithButtons = forwardRef((props, ref) => {
         selectableRowsNoSelectAll
         columns={columns}
         className='react-dataTable'
-        paginationPerPage={7}
+        paginationPerPage={10}
         expandOnRowClicked
         sortIcon={<ChevronDown size={10} />}
         paginationDefaultPage={currentPage + 1}

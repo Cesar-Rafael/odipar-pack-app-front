@@ -8,18 +8,20 @@ import { useState, useEffect, useRef, Fragment } from 'react'
 import axios from 'axios'
 import moment from 'moment'
 import Legend from './Legend'
+import API_URL from '../config'
+import Timer from './Timer'
+import ModalTheme from './Report'
 
 const MapView = () => {
   // Parámetros:
   const zoom = 5.5
   const position = [-12.51, -76.79]
 
-  const timeUpdateAlgorithm = 320000 // cada 5 minutos se ejecuta el algoritmo (ms) porque 30 segundos del tiempo de ejecución del algoritmo  
   const totalVehicules = 45
-  const totalTimeSimulation = 604800
+  const totalTimeSimulation = 604800 // 7 dias en segundos
+  const totalRealTimeSimulation = 2100000 // 35 minutos en milisegundos
 
   // Referencias
-  const idIntervalEdges = useRef(0)
   const idTimeSimulation = useRef(0)
   const coordenatesPerOffice = useRef({})
   const ordersReference = useRef([])
@@ -29,6 +31,11 @@ const MapView = () => {
   const currentTimeSimulationRef = useRef(false)
   const timeUpdate = useRef(288)
   const routesTableRef = useRef()
+  const ordersTimeToAttend = useRef(0)
+  const currentDateToAttend = useRef()
+  const timerSimulation = useRef(null)
+  const isPaused = useRef(false)
+
 
   const vehiculesReferencesAux = []
   for (let i = 0; i < totalVehicules; i++) vehiculesReferencesAux.push(useRef())
@@ -45,10 +52,13 @@ const MapView = () => {
   const [percentageProgress, setPercentageProgress] = useState(0)
   const [blocks, setBlocks] = useState([])
   const [ordersTotal, setOrdersTotal] = useState(0)
-  const [map, setMap] = useState(null);
+  const [map, setMap] = useState(null)
+  const [simulationFinished, setSimulationFinished] = useState(false)
+  const [simulationStopped, setSimulationStopped] = useState(false)
+  const [report, setReport] = useState(false)
 
   const getOffices = async () => {
-    const response = await axios.get('http://localhost:8080/Oficina/')
+    const response = await axios.get(`${API_URL}/Oficina/Listar`)
     const officesResponse = response.data
     setOffices(officesResponse)
     for (const office of officesResponse) {
@@ -57,21 +67,43 @@ const MapView = () => {
   }
 
   const getVehicules = async () => {
-    const response = await axios.get('http://localhost:8080/UnidadTransporte/')
+    const response = await axios.get(`${API_URL}/UnidadTransporte/Listar/Simulacion`)
     const vehiculesResponse = response.data
     setVehicules(vehiculesResponse)
   }
 
   const getBlocks = async (startDate, endDate) => {
-    const response = await axios.post(`http://localhost:8080/bloqueo/listar_por_fechas`, { inicio: startDate, fin: endDate })
+    const response = await axios.post(`${API_URL}/bloqueo/listar_por_fechas`, { inicio: startDate, fin: endDate })
+
+    const listBlocks = response.data
+    const positions = []
+
+    for (const block of listBlocks) {
+      const origin = coordenatesPerOffice.current[block.ubigeoInicio]
+      const destiny = coordenatesPerOffice.current[block.ubigeoFin]
+      positions.push([[origin.latitud, origin.longitud], [destiny.latitud, destiny.longitud]])
+    }
+
+    setBlocks(positions)
+  }
+
+  const endSimulation = async () => {
+    //setOffices([])
+    //setVehicules([])
+    setEdgesPositions([])
+    clearInterval(idTimeSimulation.current)
+    axios.get(`${API_URL}/simulacion/reiniciar`)
   }
 
   useEffect(async () => {
     await getOffices()
     await getVehicules()
+    axios.get(`${API_URL}/simulacion/reiniciar`)
 
     return async () => {
       await endSimulation()
+      setOffices([])
+      setVehicules([])
       console.log('Unmounted')
     }
   }, [])
@@ -82,7 +114,7 @@ const MapView = () => {
   }
 
   const updateEdges = async () => {
-    const response = await axios.get('http://localhost:8080/TramosUsados/')
+    const response = await axios.get(`${API_URL}/TramosUsados/`)
     const listEdges = response.data
     const positions = []
 
@@ -95,86 +127,137 @@ const MapView = () => {
     setEdgesPositions(positions)
   }
 
+  const getOrdersToAttend = () => {
+    const ordersToAttend = []
+    //const startDate = moment(constStartTimeSimulation.current).add(6 * ordersTimeToAttend.current, 'hours')
+    const startDate = moment.unix(currentDateToAttend.current).subtract(6, 'hours')
+    const endDate = moment.unix(currentDateToAttend.current)
+    for (let order of ordersReference.current) {
+      const dateOrder = moment(order.fechaHoraCreacion)
+      if (startDate <= dateOrder && dateOrder <= endDate) ordersToAttend.push(order)
+    }
+    getBlocks(startDate.toDate(), endDate.toDate())
+    ordersTimeToAttend.current++
+    currentDateToAttend.current = endDate.add(6, 'hours').unix()
+    return ordersToAttend
+  }
+
+  const updateRoutes = async () => {
+    const isLatest = ordersTimeToAttend.current === 28
+
+    const payload = {
+      inicioSimulacion: moment.unix(currentDateToAttend.current).toDate(),
+      pedidos: getOrdersToAttend(),
+      finalizado: isLatest
+    }
+
+    const response = await axios.post(`${API_URL}/ABCS/`, payload)
+
+    if (isLatest) {
+      const reportToShow = {
+        ...response.data,
+        ordersTotal
+      }
+
+      setReport(reportToShow)
+    }
+    routesTableRef.current.getRoutesData()
+
+    for (let vehiculeReference of vehiculesReferences.current) {
+      vehiculeReference.current.addRoutes()
+    }
+
+    updateEdges()
+  }
+
   const startSimulation = async () => {
     if (ordersReference.current.length === 0) {
       alert('Cargue un archivo de pedidos')
       return
     }
 
-    startTimeSimulation.current = moment(new Date())
-    endTimeSimulation.current = moment(startTimeSimulation.current).add(7, 'days')
-    setCurrentTimeSimulation(moment(startTimeSimulation.current))
-    currentTimeSimulationRef.current = moment(startTimeSimulation.current)
-
     setShowButton(false)
     setShowLoaderButton(true)
+
+    // Empieza a las 00:00 horas y va avanzando cada 6 horas, pero se llama cada 5 horas y 30 minutos para que corra el algoritmo
+    startTimeSimulation.current = moment(new Date()).set({ 'hour': 6, 'minute': 0, 'second': 0 })
+    currentDateToAttend.current = moment(startTimeSimulation.current).unix()
+    endTimeSimulation.current = moment(startTimeSimulation.current).add(7, 'days').subtract(6, 'hours')
+    setCurrentTimeSimulation(moment(startTimeSimulation.current))
+    currentTimeSimulationRef.current = moment(startTimeSimulation.current)
 
     timeUpdate.current *= speed
 
     const payload = {
-      pedidos: ordersReference.current,
-      inicioSimulacion: startTimeSimulation.current.toDate(),
-      velocidad: speed
+      inicioSimulacion: moment.unix(currentDateToAttend.current).toDate(),
+      pedidos: getOrdersToAttend(),
+      finalizado: false
     }
 
-    const response = await axios.post('http://localhost:8080/ABCS/', payload)
-    if (response) {
-      await updateEdges()
-      await getBlocks(startTimeSimulation.current.toDate(), currentTimeSimulationRef.current.add(1, 'day').toDate())
-      await routesTableRef.current.getRoutesData()
+    const response = await axios.post(`${API_URL}/ABCS/`, payload)
 
-      for (let vehiculeReference of vehiculesReferences.current) {
-        vehiculeReference.current.startSimulation(payload.velocidad)
-      }
+    await updateEdges()
+    await routesTableRef.current.getRoutesData()
 
-      if (idIntervalEdges.current) {
-        clearInterval(idIntervalEdges.current)
-        idIntervalEdges.current = 0
-      }
-
-      idIntervalEdges.current = setInterval(() => {
-        updateEdges()
-      }, timeUpdateAlgorithm)
-
-      if (idTimeSimulation.current) {
-        clearInterval(idTimeSimulation.current)
-        idTimeSimulation.current = 0
-      }
-
-      idTimeSimulation.current = setInterval(() => {
-        currentTimeSimulationRef.current.add(timeUpdate.current, 'seconds')
-        setCurrentTimeSimulation(currentTime => moment(currentTime).add(timeUpdate.current, 'seconds'))
-        setPercentageProgress(((currentTimeSimulationRef.current.unix() - startTimeSimulation.current.unix()) / totalTimeSimulation) * 100)
-      }, 1000) // Avanza cada 1 segundo, 288 segundos
+    for (let vehiculeReference of vehiculesReferences.current) {
+      vehiculeReference.current.startSimulation(speed)
     }
+
+    timerSimulation.current = new Timer(async () => {
+      setSimulationFinished(true)
+      await endSimulation()
+    }, parseInt(totalRealTimeSimulation / speed))
 
     setShowLoaderButton(false)
+
+    idTimeSimulation.current = setInterval(async () => {
+      if (!isPaused.current) {
+        currentTimeSimulationRef.current.add(timeUpdate.current, 'seconds')
+        setCurrentTimeSimulation(currentTime => moment(currentTime).add(timeUpdate.current, 'seconds'))
+        const currentTimeSeconds = currentTimeSimulationRef.current.unix()
+        setPercentageProgress(((currentTimeSeconds - startTimeSimulation.current.unix()) / totalTimeSimulation) * 100)
+        if (currentTimeSeconds >= currentDateToAttend.current) {
+          stopSimulation()
+          await updateRoutes()
+          resumeSimulation()
+        }
+      }
+    }, 1000) // Avanza cada 2 segundos, 576 segundos
   }
 
   const setSpeedValue = (e) => {
     setSpeed(e.currentTarget.value)
   }
 
-  const endSimulation = async () => {
-    setOffices([])
-    setVehicules([])
-    setEdgesPositions([])
-    clearInterval(idIntervalEdges.current)
-    clearInterval(idTimeSimulation.current)
-    await axios.get('http://localhost:8080/simulacion/detener')
+  const stopSimulation = async () => {
+    isPaused.current = true
+    timerSimulation.current.pause()
+    for (let vehiculeReference of vehiculesReferences.current) {
+      vehiculeReference.current.stopSimulation()
+    }
+    setSimulationStopped(true)
   }
 
-  const stopSimulation = async () => {
-    clearInterval(idIntervalEdges.current)
-    clearInterval(idTimeSimulation.current)
-    await axios.get('http://localhost:8080/simulacion/detener')
+  const resumeSimulation = async () => {
+    isPaused.current = false
+
+    timerSimulation.current.resume()
+
+    for (let vehiculeReference of vehiculesReferences.current) {
+      vehiculeReference.current.resumeSimulation()
+    }
+
+    setSimulationStopped(false)
   }
 
   return (
     <Card>
       <CardHeader>
         <Col xs='6'>
-          <CardTitle tag='h3'><b>Simulación 7 días</b></CardTitle>
+          <CardTitle tag='h3'>
+            <b>Simulación 7 días</b>
+            {report ? <ModalTheme report={report}></ModalTheme> : ''}
+          </CardTitle>
         </Col>
         {
           showButton ?
@@ -191,38 +274,28 @@ const MapView = () => {
             </Col> : ''
         }
         {
-          !showButton && !showLoaderButton ?
-            <Fragment>
-              <Col xs='3' className='text-right'>
-                <Alert color='success'>
-                  <h4 className='alert-heading'>Simulación Iniciada</h4>
-                </Alert>
-              </Col>
-              <Col xs='3' className='text-right'>
-                <Button color='danger' onClick={stopSimulation}>Detener Simulacion</Button>
-              </Col>
-            </Fragment>
+          !showButton && !showLoaderButton && !simulationFinished ?
+            <Col xs='6' className='text-right'>
+              <Button className='mr-2' color='primary' onClick={stopSimulation} disabled={simulationStopped}>Pausar Simulacion</Button>
+              <Button color='info' onClick={resumeSimulation} disabled={!simulationStopped}>Reanudar Simulacion</Button>
+            </Col>
             : ''
         }
       </CardHeader>
       <CardBody>
         <Row className='mb-1'>
           <Col xs='4'>
-            <DataUpload loadOrders={setOrders} />
+            <DataUpload loadOrders={setOrders} offices={offices} />
           </Col>
           <Col xs='4'>
-            <Label className='mr-2'>
-              <b>Cantidad de Pedidos:</b>
-            </Label>
             <FormGroup check inline>
+              <b className='mr-2'>Cantidad de Pedidos:</b>
               {ordersTotal}
             </FormGroup>
           </Col>
           <Col xs='4'>
-            <Label className='mr-2'>
-              <b>Velocidad:</b>
-            </Label>
             <FormGroup check inline>
+              <b className='mr-2'>Velocidad:</b>
               <Label check>
                 <Input type='radio' name='speed' value={1} defaultChecked onChange={setSpeedValue} /> x1.0
               </Label>
@@ -237,6 +310,11 @@ const MapView = () => {
                 <Input type='radio' name='speed' value={3} onChange={setSpeedValue} /> x3.0
               </Label>
             </FormGroup>
+            <FormGroup check inline>
+              <Label check>
+                <Input type='radio' name='speed' value={4} onChange={setSpeedValue} /> x4.0
+              </Label>
+            </FormGroup>
           </Col>
           <Col xs='4'>
             <b>Inicio Simulacion:</b> <br />
@@ -244,7 +322,7 @@ const MapView = () => {
           </Col>
           <Col xs='4'>
             <b>Tiempo Actual Simulacion:</b> <br />
-            <b style={{ fontSize: 18 }}>
+            <b style={{ fontSize: 18, borderStyle: 'dotted' }}>
               {currentTimeSimulation ? currentTimeSimulation.format('DD/MM/YYYY h:mm a') : '-'}
             </b>
           </Col>
@@ -259,7 +337,7 @@ const MapView = () => {
           </Col>
         </Row>
         <Row>
-          <Col xs='7'>
+          <Col xs='6'>
             <MapContainer center={position} zoom={zoom} className='leaflet-map' style={{ height: "100vh" }} scrollWheelZoom={true}
               whenCreated={setMap}>
               <TileLayer
@@ -286,11 +364,15 @@ const MapView = () => {
                 return (<Polyline key={`edge-${idx}`} positions={position} color={'#7F7F7F'} weight={1} />)
               })}
 
+              {blocks.map((position, idx) => {
+                return (<Polyline key={`block-${idx}`} positions={position} color={'#A12C22'} weight={1} />)
+              })}
+
               <Legend map={map} />
 
             </MapContainer>
           </Col>
-          <Col xs='5'>
+          <Col xs='6'>
             <TableExpandable key='table-1' ref={routesTableRef} />
           </Col>
         </Row>
