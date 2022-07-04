@@ -1,5 +1,5 @@
-import { Badge } from 'reactstrap'
-
+import { MoreVertical, FileText } from 'react-feather'
+import { Badge, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap'
 import { Link } from 'react-router-dom'
 
 const status = {
@@ -48,12 +48,6 @@ export const multiLingColumns = [
         </Badge>
       )
     }
-  },
-  {
-    name: 'Fecha de Mantenimiento',
-    selector: 'fechaMantenimiento',
-    sortable: true,
-    minWidth: '180px'
   },
   {
     name: 'Acciones',

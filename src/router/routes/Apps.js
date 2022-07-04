@@ -15,6 +15,10 @@ const AppRoutes = [
     component: lazy(() => import('../../views/apps/vehicle/list'))
   },
   {
+    path: '/apps/vehicle/view/:id',
+    component: lazy(() => import('../../views/apps/vehicle/view')),
+  },
+  {
     path: '/apps/office/list',
     component: lazy(() => import('../../views/apps/office/list'))
   },
@@ -23,15 +27,18 @@ const AppRoutes = [
     component: lazy(() => import('../../views/apps/simulation'))
   },
   {
+    path: '/apps/operation',
+    component: lazy(() => import('../../views/apps/operation'))
+  },
+  {
+    path: '/apps/collapse',
+    component: lazy(() => import('../../views/apps/collapse'))
+  },
+  {
     path: '/apps/block/list',
     component: lazy(() => import('../../views/apps/block/list'))
-  },
+  }
   /*
-  {
-    path: '/apps/order/edit',
-    exact: true,
-    component: () => <Redirect to='/apps/user/order/1' />
-  },
   {
     path: '/apps/order/edit/:id',
     component: lazy(() => import('../../views/apps/order/edit')),

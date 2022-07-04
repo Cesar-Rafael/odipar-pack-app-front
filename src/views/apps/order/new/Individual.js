@@ -21,6 +21,7 @@ import { User, Package } from 'react-feather'
 import { selectThemeColors } from '@utils'
 import { useState } from 'react'
 import axios from 'axios'
+import API_URL from '../../config'
 
 const RegisterIndividual = ({ offices }) => {
   const [registered, setRegistered] = useState(false)
@@ -46,7 +47,7 @@ const RegisterIndividual = ({ offices }) => {
       estado: 0
     }
 
-    const response = await axios.post('http://localhost:8080/Pedido/Insertar', order)
+    const response = await axios.post(`${API_URL}/Pedido/Insertar`, order)
     if (response.data.id >= 0) {
       setRegistered(true)
       resetValues()

@@ -5,13 +5,14 @@ import RegisterMasive from './Masive'
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import API_URL from './../../config'
 
 const newOrder = () => {
 
   const [offices, setOffices] = useState([])
 
   const getOffices = async () => {
-    const response = await axios.get('http://localhost:8080/Oficina/Listar')
+    const response = await axios.get(`${API_URL}/Oficina/Listar`)
     setOffices(response.data.filter(x => !x.esPrincipal).map(office => {
       return {
         value: office.ubigeo,

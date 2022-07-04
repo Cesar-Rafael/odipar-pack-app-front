@@ -56,7 +56,6 @@
   "Buttons": "Buttons",
   "Breadcrumbs": "Breadcrumbs",
   "Carousel": "Carousel",
-  "Collapse": "Collapse",
   "Dropdowns": "Dropdowns",
   "List Group": "List Group",
   "Modals": "Modals",
@@ -180,6 +179,8 @@
   "Vehicles": "Vehiculos",
   "Offices": "Oficinas",
   "Simulation": "Simulacion",
+  "Operation": "Operación Día Día",
+  "Collapse": "Colapso",
   "Register": "Registrar",
   "Blocks": "Bloqueos"
 }

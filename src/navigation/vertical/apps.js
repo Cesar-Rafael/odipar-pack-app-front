@@ -109,10 +109,22 @@ export default [
     ]
   },
   {
+    id: 'operation',
+    title: 'Operation',
+    icon: <Map size={20} />,
+    navLink: '/apps/operation'
+  },
+  {
     id: 'simulation',
     title: 'Simulation',
     icon: <Map size={20} />,
     navLink: '/apps/simulation'
+  },
+  {
+    id: 'collapse',
+    title: 'Collapse',
+    icon: <Map size={20} />,
+    navLink: '/apps/collapse'
   }
   /*
   {

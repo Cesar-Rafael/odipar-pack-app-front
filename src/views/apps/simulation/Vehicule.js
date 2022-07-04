@@ -13,9 +13,14 @@ import API_URL from './../config'
 // 0.25s - 77s
 // Valor de avance sería de 144s en el algoritmo
 
+// 2m - 1440m
+// 1m - 720m
+// 1s - 720s
+// 0.1s - 72s
+
 const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     const timeUpdateVehicules = useRef(100) // cada 0.25 segundos se actualiza la posición (ms)
-    const timeRealUpdateVehicules = useRef(29) // Velocidad normal: x1.0
+    const timeRealUpdateVehicules = useRef(72) // Velocidad normal: x1.0
     const idIntervalVehicules = useRef(0)
 
     const [position, setPosition] = useState([vehicule.abscisa, vehicule.ordenada])
@@ -54,6 +59,7 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
 
     const calculatePositionVehicules = () => {
         while (routes.current.length > routesCompleted.current) {
+
             currentRoute.current = routes.current[routesCompleted.current]
             const tiemposLlegada = currentRoute.current.arrayHorasLlegada
             const oficinas = currentRoute.current.arraySeguimiento
@@ -77,19 +83,16 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
 
         await getRoutes(vehicule.id)
 
-        if (routes.current.length) {
+        calculatePositionVehicules()
 
-            calculatePositionVehicules()
-
-            if (idIntervalVehicules.current) {
-                clearInterval(idIntervalVehicules.current)
-                idIntervalVehicules.current = 0
-            }
-
-            idIntervalVehicules.current = setInterval(() => {
-                steps.current.length && setPosition(steps.current.shift())
-            }, timeUpdateVehicules.current)
+        if (idIntervalVehicules.current) {
+            clearInterval(idIntervalVehicules.current)
+            idIntervalVehicules.current = 0
         }
+
+        idIntervalVehicules.current = setInterval(() => {
+            steps.current.length && setPosition(steps.current.shift())
+        }, timeUpdateVehicules.current)
     }
 
     const addRoutes = async () => {

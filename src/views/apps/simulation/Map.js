@@ -9,7 +9,6 @@ import axios from 'axios'
 import moment from 'moment'
 import Legend from './Legend'
 import API_URL from './../config'
-import Timer from './Timer'
 import ModalTheme from './Report'
 
 const MapView = () => {
@@ -19,7 +18,6 @@ const MapView = () => {
 
   const totalVehicules = 45
   const totalTimeSimulation = 604800 // 7 dias en segundos
-  const totalRealTimeSimulation = 2100000 // 35 minutos en milisegundos
 
   // Referencias
   const idTimeSimulation = useRef(0)
@@ -29,11 +27,11 @@ const MapView = () => {
   const startTimeSimulation = useRef(false)
   const endTimeSimulation = useRef(false)
   const currentTimeSimulationRef = useRef(false)
-  const timeUpdate = useRef(288)
+  const timeUpdate = useRef(720)
   const routesTableRef = useRef()
   const ordersTimeToAttend = useRef(0)
   const currentDateToAttend = useRef()
-  const timerSimulation = useRef(null)
+  const currentDateToCall = useRef()
   const isPaused = useRef(false)
 
 
@@ -90,9 +88,10 @@ const MapView = () => {
   const endSimulation = async () => {
     //setOffices([])
     //setVehicules([])
-    setEdgesPositions([])
+    //setEdgesPositions([])
     clearInterval(idTimeSimulation.current)
-    axios.get(`${API_URL}/simulacion/reiniciar`)
+    setSimulationFinished(true)
+    //axios.get(`${API_URL}/simulacion/reiniciar`)
   }
 
   useEffect(async () => {
@@ -114,7 +113,7 @@ const MapView = () => {
   }
 
   const updateEdges = async () => {
-    const response = await axios.get(`${API_URL}/TramosUsados/`)
+    const response = await axios.get(`${API_URL}/TramosUsadosSimulacion/`)
     const listEdges = response.data
     const positions = []
 
@@ -129,8 +128,7 @@ const MapView = () => {
 
   const getOrdersToAttend = () => {
     const ordersToAttend = []
-    //const startDate = moment(constStartTimeSimulation.current).add(6 * ordersTimeToAttend.current, 'hours')
-    const startDate = moment.unix(currentDateToAttend.current).subtract(6, 'hours')
+    const startDate = moment.unix(currentDateToAttend.current).subtract(8, 'hours')
     const endDate = moment.unix(currentDateToAttend.current)
     for (let order of ordersReference.current) {
       const dateOrder = moment(order.fechaHoraCreacion)
@@ -138,29 +136,11 @@ const MapView = () => {
     }
     getBlocks(startDate.toDate(), endDate.toDate())
     ordersTimeToAttend.current++
-    currentDateToAttend.current = endDate.add(6, 'hours').unix()
+    currentDateToAttend.current = endDate.add(8, 'hours').unix()
     return ordersToAttend
   }
 
-  const updateRoutes = async () => {
-    const isLatest = ordersTimeToAttend.current === 28
-
-    const payload = {
-      inicioSimulacion: moment.unix(currentDateToAttend.current).toDate(),
-      pedidos: getOrdersToAttend(),
-      finalizado: isLatest
-    }
-
-    const response = await axios.post(`${API_URL}/ABCS/`, payload)
-
-    if (isLatest) {
-      const reportToShow = {
-        ...response.data,
-        ordersTotal
-      }
-
-      setReport(reportToShow)
-    }
+  const updateRoutes = () => {
     routesTableRef.current.getRoutesData()
 
     for (let vehiculeReference of vehiculesReferences.current) {
@@ -168,6 +148,24 @@ const MapView = () => {
     }
 
     updateEdges()
+  }
+
+  const callAlgorithm = async () => {
+    while (ordersTimeToAttend.current <= 21) {
+      console.log(ordersTimeToAttend.current)
+
+      const payload = {
+        inicioSimulacion: moment.unix(currentDateToAttend.current).toDate(),
+        pedidos: getOrdersToAttend(),
+      }
+
+      await axios.post(`${API_URL}/ABCS/`, payload)
+    }
+  }
+
+  const getReport = async () => {
+    const response = await axios.get(`${API_URL}/SimulacionReporte`)
+    setReport(response.data)
   }
 
   const startSimulation = async () => {
@@ -179,10 +177,11 @@ const MapView = () => {
     setShowButton(false)
     setShowLoaderButton(true)
 
-    // Empieza a las 00:00 horas y va avanzando cada 6 horas, pero se llama cada 5 horas y 30 minutos para que corra el algoritmo
-    startTimeSimulation.current = moment(new Date()).set({ 'hour': 6, 'minute': 0, 'second': 0 })
+    // Empieza a las 00:00 horas y va avanzando cada 8 horas
+    startTimeSimulation.current = moment(new Date()).set({ 'hour': 8, 'minute': 0, 'second': 0 })
     currentDateToAttend.current = moment(startTimeSimulation.current).unix()
-    endTimeSimulation.current = moment(startTimeSimulation.current).add(7, 'days').subtract(6, 'hours')
+    currentDateToCall.current = moment(startTimeSimulation.current).add(8, 'hours').unix()
+    endTimeSimulation.current = moment(startTimeSimulation.current).add(7, 'days').subtract(8, 'hours')
     setCurrentTimeSimulation(moment(startTimeSimulation.current))
     currentTimeSimulationRef.current = moment(startTimeSimulation.current)
 
@@ -190,23 +189,19 @@ const MapView = () => {
 
     const payload = {
       inicioSimulacion: moment.unix(currentDateToAttend.current).toDate(),
-      pedidos: getOrdersToAttend(),
-      finalizado: false
+      pedidos: getOrdersToAttend()
     }
 
-    const response = await axios.post(`${API_URL}/ABCS/`, payload)
+    await axios.post(`${API_URL}/ABCS/`, payload)
 
-    await updateEdges()
-    await routesTableRef.current.getRoutesData()
+    callAlgorithm()
+
+    updateEdges()
+    routesTableRef.current.getRoutesData()
 
     for (let vehiculeReference of vehiculesReferences.current) {
       vehiculeReference.current.startSimulation(speed)
     }
-
-    timerSimulation.current = new Timer(async () => {
-      setSimulationFinished(true)
-      await endSimulation()
-    }, parseInt(totalRealTimeSimulation / speed))
 
     setShowLoaderButton(false)
 
@@ -216,13 +211,18 @@ const MapView = () => {
         setCurrentTimeSimulation(currentTime => moment(currentTime).add(timeUpdate.current, 'seconds'))
         const currentTimeSeconds = currentTimeSimulationRef.current.unix()
         setPercentageProgress(((currentTimeSeconds - startTimeSimulation.current.unix()) / totalTimeSimulation) * 100)
-        if (currentTimeSeconds >= currentDateToAttend.current) {
+        if (currentTimeSeconds >= currentDateToCall.current) {
           stopSimulation()
-          await updateRoutes()
+          updateRoutes()
+          currentDateToCall.current = moment.unix(currentDateToCall.current).add(8, 'hours').unix()
           resumeSimulation()
         }
+        if (currentTimeSeconds > endTimeSimulation.current) {
+          await getReport()
+          endSimulation()
+        }
       }
-    }, 1000) // Avanza cada 2 segundos, 576 segundos
+    }, 1000)
   }
 
   const setSpeedValue = (e) => {
@@ -231,21 +231,20 @@ const MapView = () => {
 
   const stopSimulation = async () => {
     isPaused.current = true
-    timerSimulation.current.pause()
+    /*
     for (let vehiculeReference of vehiculesReferences.current) {
       vehiculeReference.current.stopSimulation()
-    }
+    }*/
     setSimulationStopped(true)
   }
 
   const resumeSimulation = async () => {
     isPaused.current = false
 
-    timerSimulation.current.resume()
-
+    /*
     for (let vehiculeReference of vehiculesReferences.current) {
       vehiculeReference.current.resumeSimulation()
-    }
+    }*/
 
     setSimulationStopped(false)
   }
@@ -308,11 +307,6 @@ const MapView = () => {
             <FormGroup check inline>
               <Label check>
                 <Input type='radio' name='speed' value={3} onChange={setSpeedValue} /> x3.0
-              </Label>
-            </FormGroup>
-            <FormGroup check inline>
-              <Label check>
-                <Input type='radio' name='speed' value={4} onChange={setSpeedValue} /> x4.0
               </Label>
             </FormGroup>
           </Col>
