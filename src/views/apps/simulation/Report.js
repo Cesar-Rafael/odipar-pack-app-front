@@ -15,7 +15,7 @@ const ModalTheme = ({ report }) => {
                 <ModalBody>
                     <b>Cantidad de Pedidos Atendidos: </b> {report.ordersTotal} <hr></hr>
                     <b>Cantidad de Rutas Generadas:</b> {report.cantRutas} <hr></hr>
-                    <b>Tiempo promedio de entrega:</b> {report.promTiempo} <hr></hr>
+                    <b>Tiempo promedio de entrega:</b> {(report.promTiempo / 3600).toFixed(2)} horas <hr></hr>
                 </ModalBody>
                 <ModalFooter>
                     <Button color={'success'} onClick={() => setIsOpen(false)}>

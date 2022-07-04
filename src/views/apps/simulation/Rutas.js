@@ -61,9 +61,9 @@ const DataTableWithButtons = forwardRef((props, ref) => {
     return packages
   }
 
-  const getRoutesData = async () => {
+  const getRoutesData = async (currentDateToCall) => {
     setLoadingRoutes(true)
-    const response = await axios.get(`${API_URL}/ruta/simulacion/listar`)
+    const response = await axios.get(`${API_URL}/ruta/simulacion/listar?fechaLimite=${currentDateToCall}`)
     if (response.data) {
       const dataResponse = response.data
       const newData = []
@@ -151,7 +151,7 @@ const DataTableWithButtons = forwardRef((props, ref) => {
       nextLabel={<Next size={15} />}
       forcePage={currentPage}
       onPageChange={page => handlePagination(page)}
-      pageCount={searchValue.length ? filteredData.length / 7 : data.length / 7 || 1}
+      pageCount={searchValue.length ? filteredData.length / 10 : data.length / 10 || 1}
       breakLabel={'...'}
       pageRangeDisplayed={2}
       marginPagesDisplayed={2}

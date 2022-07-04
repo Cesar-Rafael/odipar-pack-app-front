@@ -29,8 +29,8 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     const routes = useRef([])
     const steps = useRef([])
 
-    const getRoutes = async (id) => {
-        const response = await axios.get(`${API_URL}/ruta/ListarRutasxIdVehiculoSimulacion/${id}`)
+    const getRoutes = async (id, currentDateToCall) => {
+        const response = await axios.get(`${API_URL}/ruta/ListarRutasxIdVehiculoSimulacion?idVehiculo=${id}&fechaLimite=${currentDateToCall}`)
         if (response.data.length) {
             routes.current = response.data
             currentRoute.current = routes.current[0]
@@ -76,12 +76,12 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
         }
     }
 
-    const startSimulation = async (speed) => {
+    const startSimulation = async (speed, currentDateToCall) => {
         // Setting parameters   
         timeRealUpdateVehicules.current *= speed
         //timeUpdateVehicules.current *= speed
 
-        await getRoutes(vehicule.id)
+        await getRoutes(vehicule.id, currentDateToCall)
 
         calculatePositionVehicules()
 
@@ -95,9 +95,9 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
         }, timeUpdateVehicules.current)
     }
 
-    const addRoutes = async () => {
+    const addRoutes = async (currentDateToCall) => {
         //stopSimulation()
-        await getRoutes(vehicule.id)
+        await getRoutes(vehicule.id, currentDateToCall)
         calculatePositionVehicules()
         //resumeSimulation()
     }

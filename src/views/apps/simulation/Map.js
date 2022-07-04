@@ -141,10 +141,10 @@ const MapView = () => {
   }
 
   const updateRoutes = () => {
-    routesTableRef.current.getRoutesData()
+    routesTableRef.current.getRoutesData(currentDateToCall.current)
 
     for (let vehiculeReference of vehiculesReferences.current) {
-      vehiculeReference.current.addRoutes()
+      vehiculeReference.current.addRoutes(currentDateToCall.current)
     }
 
     updateEdges()
@@ -165,7 +165,9 @@ const MapView = () => {
 
   const getReport = async () => {
     const response = await axios.get(`${API_URL}/SimulacionReporte`)
-    setReport(response.data)
+    setReport({
+      ...response.data, ordersTotal: ordersReference.current.length
+    })
   }
 
   const startSimulation = async () => {
@@ -197,10 +199,10 @@ const MapView = () => {
     callAlgorithm()
 
     updateEdges()
-    routesTableRef.current.getRoutesData()
+    routesTableRef.current.getRoutesData(currentDateToCall.current)
 
     for (let vehiculeReference of vehiculesReferences.current) {
-      vehiculeReference.current.startSimulation(speed)
+      vehiculeReference.current.startSimulation(speed, currentDateToCall.current)
     }
 
     setShowLoaderButton(false)
@@ -217,7 +219,7 @@ const MapView = () => {
           currentDateToCall.current = moment.unix(currentDateToCall.current).add(8, 'hours').unix()
           resumeSimulation()
         }
-        if (currentTimeSeconds > endTimeSimulation.current) {
+        if (currentTimeSeconds >= endTimeSimulation.current.unix()) {
           await getReport()
           endSimulation()
         }
