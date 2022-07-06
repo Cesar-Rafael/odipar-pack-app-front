@@ -11,12 +11,6 @@ import { Card, CardHeader, CardTitle, Row, Col, Label, Input, FormGroup, Alert }
 import axios from 'axios'
 import API_URL from '../config'
 
-//
-// 5m - 1440m (24h) 35m / 3 = 12m
-// 1m - 288m
-
-// 
-
 const DataTableWithButtons = forwardRef((props, ref) => {
   // ** State
   const [currentPage, setCurrentPage] = useState(0)
@@ -58,22 +52,18 @@ const DataTableWithButtons = forwardRef((props, ref) => {
     }
   }
 
-  // pedidos
-  // inicioSimulacion
-  // finalizado = false o true (true)
-  // 
-
-  const getPackagesPerOffice = (orders, ubigeo) => {
+  const getPackagesPerOffice = (orders, partialOrders, ubigeo) => {
     let packages = 0
-    for (let order of orders) {
-      if (order.idCiudadDestino === ubigeo) packages += order.cantPaquetes
+    for (let order of partialOrders) {
+      const orderRespective = orders.find(o => o.id === order.idPedido)
+      if (orderRespective.idCiudadDestino === ubigeo) packages += order.cantPaquetes
     }
     return packages
   }
 
-  const getRoutesData = async () => {
+  const getRoutesData = async (currentDateToCall) => {
     setLoadingRoutes(true)
-    const response = await axios.get(`${API_URL}/ruta/simulacion/listar`)
+    const response = await axios.get(`${API_URL}/ruta/simulacion/listar?fechaLimite=${currentDateToCall}`)
     if (response.data) {
       const dataResponse = response.data
       const newData = []
@@ -85,7 +75,8 @@ const DataTableWithButtons = forwardRef((props, ref) => {
         const officesNames = currentData.nombreProvincias
         const times = currentData.arrayHorasLlegada
         const orders = currentData.pedidos
-        const packages = getPackagesPerOffice(orders, offices[1])
+        const partialOrders = currentData.pedidosParciales
+        const packages = getPackagesPerOffice(orders, partialOrders, offices[1])
         totalPackages += packages
 
         const routes = [{
@@ -97,7 +88,7 @@ const DataTableWithButtons = forwardRef((props, ref) => {
         }]
 
         for (let j = 1; j < offices.length - 1; j++) {
-          const packages = getPackagesPerOffice(orders, offices[j + 1])
+          const packages = getPackagesPerOffice(orders, partialOrders, offices[j + 1])
           totalPackages += packages
           routes.push({
             origin: officesNames[j],
@@ -160,7 +151,7 @@ const DataTableWithButtons = forwardRef((props, ref) => {
       nextLabel={<Next size={15} />}
       forcePage={currentPage}
       onPageChange={page => handlePagination(page)}
-      pageCount={searchValue.length ? filteredData.length / 7 : data.length / 7 || 1}
+      pageCount={searchValue.length ? filteredData.length / 10 : data.length / 10 || 1}
       breakLabel={'...'}
       pageRangeDisplayed={2}
       marginPagesDisplayed={2}

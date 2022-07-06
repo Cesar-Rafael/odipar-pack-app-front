@@ -1,7 +1,7 @@
 import { Popup, CircleMarker } from 'react-leaflet'
 import axios from 'axios'
 import { useState, useRef, useImperativeHandle, forwardRef } from 'react'
-import API_URL from './../config'
+import API_URL from '../config'
 
 // 5m - 1440m (24h) 35m / 3 = 12m
 // 1m - 288m
@@ -13,9 +13,19 @@ import API_URL from './../config'
 // 0.25s - 77s
 // Valor de avance sería de 144s en el algoritmo
 
+// 3m - 1440m
+// 1m - 480m
+// 1s - 480s
+// 0.1s - 48s
+
+// 2m - 1440m
+// 1m - 720m
+// 1s - 720s
+// 0.1s - 72s
+
 const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     const timeUpdateVehicules = useRef(100) // cada 0.25 segundos se actualiza la posición (ms)
-    const timeRealUpdateVehicules = useRef(29) // Velocidad normal: x1.0
+    const timeRealUpdateVehicules = useRef(48) // Velocidad normal: x1.0
     const idIntervalVehicules = useRef(0)
 
     const [position, setPosition] = useState([vehicule.abscisa, vehicule.ordenada])
@@ -24,8 +34,8 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     const routes = useRef([])
     const steps = useRef([])
 
-    const getRoutes = async (id) => {
-        const response = await axios.get(`${API_URL}/ruta/ListarRutasxIdVehiculoSimulacion/${id}`)
+    const getRoutes = async (id, currentDateToCall) => {
+        const response = await axios.get(`${API_URL}/ruta/ListarRutasxIdVehiculoSimulacion?idVehiculo=${id}&fechaLimite=${currentDateToCall}`)
         if (response.data.length) {
             routes.current = response.data
             currentRoute.current = routes.current[0]
@@ -54,6 +64,7 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
 
     const calculatePositionVehicules = () => {
         while (routes.current.length > routesCompleted.current) {
+
             currentRoute.current = routes.current[routesCompleted.current]
             const tiemposLlegada = currentRoute.current.arrayHorasLlegada
             const oficinas = currentRoute.current.arraySeguimiento
@@ -70,31 +81,28 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
         }
     }
 
-    const startSimulation = async (speed) => {
+    const startSimulation = async (speed, currentDateToCall) => {
         // Setting parameters   
         timeRealUpdateVehicules.current *= speed
         //timeUpdateVehicules.current *= speed
 
-        await getRoutes(vehicule.id)
+        await getRoutes(vehicule.id, currentDateToCall)
 
-        if (routes.current.length) {
+        calculatePositionVehicules()
 
-            calculatePositionVehicules()
-
-            if (idIntervalVehicules.current) {
-                clearInterval(idIntervalVehicules.current)
-                idIntervalVehicules.current = 0
-            }
-
-            idIntervalVehicules.current = setInterval(() => {
-                steps.current.length && setPosition(steps.current.shift())
-            }, timeUpdateVehicules.current)
+        if (idIntervalVehicules.current) {
+            clearInterval(idIntervalVehicules.current)
+            idIntervalVehicules.current = 0
         }
+
+        idIntervalVehicules.current = setInterval(() => {
+            steps.current.length && setPosition(steps.current.shift())
+        }, timeUpdateVehicules.current)
     }
 
-    const addRoutes = async () => {
+    const addRoutes = async (currentDateToCall) => {
         //stopSimulation()
-        await getRoutes(vehicule.id)
+        await getRoutes(vehicule.id, currentDateToCall)
         calculatePositionVehicules()
         //resumeSimulation()
     }

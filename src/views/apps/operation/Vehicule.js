@@ -34,7 +34,6 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     const getRoutes = async (id) => {
         const response = await axios.get(`${API_URL}/ruta/ListarRutasxIdVehiculoDiaDia/${id}`)
         if (response.data.length) {
-            console.log(response.data)
             routes.current = response.data
 
             for (let i = 0; i < routes.current.length; i++) {

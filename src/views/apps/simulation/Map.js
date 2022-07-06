@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardBody, Row, Col, Button, Spinner, Alert, FormGroup, Input, Label, Progress } from 'reactstrap'
+import { Card, CardHeader, CardTitle, CardBody, Row, Col, Button, Spinner, Alert, FormGroup, Input, Label, Progress, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap'
 import { MapContainer, TileLayer, Popup, Polyline, CircleMarker } from 'react-leaflet'
 import '@styles/react/libs/maps/map-leaflet.scss'
 import Vehicule from './Vehicule'
@@ -9,7 +9,6 @@ import axios from 'axios'
 import moment from 'moment'
 import Legend from './Legend'
 import API_URL from './../config'
-import ModalTheme from './Report'
 
 const MapView = () => {
   // Parámetros:
@@ -17,7 +16,7 @@ const MapView = () => {
   const position = [-12.51, -76.79]
 
   const totalVehicules = 45
-  const totalTimeSimulation = 604800 // 7 dias en segundos
+  const totalTimeSimulation = 576000 // 7 dias en segundos - 28800
 
   // Referencias
   const idTimeSimulation = useRef(0)
@@ -27,12 +26,13 @@ const MapView = () => {
   const startTimeSimulation = useRef(false)
   const endTimeSimulation = useRef(false)
   const currentTimeSimulationRef = useRef(false)
-  const timeUpdate = useRef(720)
+  const timeUpdate = useRef(480)
   const routesTableRef = useRef()
   const ordersTimeToAttend = useRef(0)
   const currentDateToAttend = useRef()
   const currentDateToCall = useRef()
   const isPaused = useRef(false)
+  const totalOrdersAttended = useRef(0)
 
 
   const vehiculesReferencesAux = []
@@ -54,6 +54,7 @@ const MapView = () => {
   const [simulationFinished, setSimulationFinished] = useState(false)
   const [simulationStopped, setSimulationStopped] = useState(false)
   const [report, setReport] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   const getOffices = async () => {
     const response = await axios.get(`${API_URL}/Oficina/Listar`)
@@ -86,12 +87,11 @@ const MapView = () => {
   }
 
   const endSimulation = async () => {
-    //setOffices([])
-    //setVehicules([])
-    //setEdgesPositions([])
     clearInterval(idTimeSimulation.current)
     setSimulationFinished(true)
-    //axios.get(`${API_URL}/simulacion/reiniciar`)
+    for (let vehiculeReference of vehiculesReferences.current) {
+      vehiculeReference.current.stopSimulation()
+    }
   }
 
   useEffect(async () => {
@@ -103,6 +103,8 @@ const MapView = () => {
       await endSimulation()
       setOffices([])
       setVehicules([])
+      setEdgesPositions([])
+      setBlocks([])
       console.log('Unmounted')
     }
   }, [])
@@ -137,6 +139,7 @@ const MapView = () => {
     getBlocks(startDate.toDate(), endDate.toDate())
     ordersTimeToAttend.current++
     currentDateToAttend.current = endDate.add(8, 'hours').unix()
+    totalOrdersAttended.current += ordersToAttend.length
     return ordersToAttend
   }
 
@@ -152,22 +155,23 @@ const MapView = () => {
 
   const callAlgorithm = async () => {
     while (ordersTimeToAttend.current <= 21) {
-      console.log(ordersTimeToAttend.current)
 
       const payload = {
         inicioSimulacion: moment.unix(currentDateToAttend.current).toDate(),
         pedidos: getOrdersToAttend(),
       }
 
-      await axios.post(`${API_URL}/ABCS/`, payload)
+      const response = await axios.post(`${API_URL}/ABCS/`, payload)
+      if (response.data) break
     }
   }
 
   const getReport = async () => {
     const response = await axios.get(`${API_URL}/SimulacionReporte`)
     setReport({
-      ...response.data, ordersTotal: ordersReference.current.length
+      ...response.data, ordersTotal: totalOrdersAttended.current
     })
+    setIsOpen(true)
   }
 
   const startSimulation = async () => {
@@ -233,41 +237,30 @@ const MapView = () => {
 
   const stopSimulation = async () => {
     isPaused.current = true
-    /*
-    for (let vehiculeReference of vehiculesReferences.current) {
-      vehiculeReference.current.stopSimulation()
-    }*/
     setSimulationStopped(true)
   }
 
   const resumeSimulation = async () => {
     isPaused.current = false
-
-    /*
-    for (let vehiculeReference of vehiculesReferences.current) {
-      vehiculeReference.current.resumeSimulation()
-    }*/
-
     setSimulationStopped(false)
   }
 
   return (
     <Card>
       <CardHeader>
-        <Col xs='6'>
+        <Col xs='4'>
           <CardTitle tag='h3'>
             <b>Simulación 7 días</b>
-            {report ? <ModalTheme report={report}></ModalTheme> : ''}
           </CardTitle>
         </Col>
         {
           showButton ?
-            <Col xs='6' className='text-right'>
+            <Col xs='8' className='text-right'>
               <Button color='primary' onClick={startSimulation}>Iniciar Simulacion</Button>
             </Col> : ''}
         {
           showLoaderButton ?
-            <Col xs='6' className='text-right'>
+            <Col xs='8' className='text-right'>
               <Button.Ripple color='primary' outline disabled>
                 <Spinner size='sm' />
                 <span className='ml-50'>Calculando...</span>
@@ -276,9 +269,16 @@ const MapView = () => {
         }
         {
           !showButton && !showLoaderButton && !simulationFinished ?
-            <Col xs='6' className='text-right'>
+            <Col xs='8' className='text-right'>
               <Button className='mr-2' color='primary' onClick={stopSimulation} disabled={simulationStopped}>Pausar Simulacion</Button>
               <Button color='info' onClick={resumeSimulation} disabled={!simulationStopped}>Reanudar Simulacion</Button>
+            </Col>
+            : ''
+        }
+        {
+          simulationFinished ?
+            <Col xs='8' className='text-right'>
+              <Button color='success' onClick={getReport}>Consultar Reporte</Button>
             </Col>
             : ''
         }
@@ -329,7 +329,7 @@ const MapView = () => {
         </Row>
         <Row className='mb-2'>
           <Col xs='12'>
-            <Progress animated striped className='progress-bar-info' value={percentageProgress}>{percentageProgress.toFixed(2)} %</Progress>
+            <Progress animated striped className='progress-bar-info' value={percentageProgress}>{percentageProgress.toFixed(0)} %</Progress>
           </Col>
         </Row>
         <Row>
@@ -373,6 +373,31 @@ const MapView = () => {
           </Col>
         </Row>
       </CardBody>
+      {
+        isOpen ?
+          <Modal
+            isOpen={isOpen}
+            className='modal-dialog-centered'
+            modalClassName={'modal-success'}
+          >
+            <ModalHeader>Simulación Finalizada</ModalHeader>
+            <ModalBody>
+              <b>Cantidad de Pedidos Atendidos: </b> {report.ordersTotal} <hr></hr>
+              <b>Cantidad de Rutas Generadas:</b> {report.cantRutas} <hr></hr>
+              <b>Tiempo promedio de entrega:</b> {(report.promTiempo / 3600).toFixed(2)} horas <hr></hr>
+              <b>Pedidos Atendidos a COSTA:</b> {parseInt(report.cantCosta)} <hr></hr>
+              <b>Pedidos Atendidos a SIERRA:</b> {parseInt(report.cantSierra)} <hr></hr>
+              <b>Pedidos Atendidos a SELVA:</b> {parseInt(report.cantSelva)} <hr></hr>
+              <b>Cantidad Promedio de Pedidos Parciales por Pedido:</b> {report.pedidosParcialesxPedido.toFixed(2)} <hr></hr>
+            </ModalBody>
+            <ModalFooter>
+              <Button color={'success'} onClick={() => setIsOpen(false)}>
+                OK
+              </Button>
+            </ModalFooter>
+          </Modal>
+          : ''
+      }
     </Card>
   )
 }

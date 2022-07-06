@@ -55,10 +55,11 @@ const DataTableWithButtons = ({ id }) => {
     }
   }
 
-  const getPackagesPerOffice = (orders, ubigeo) => {
+  const getPackagesPerOffice = (orders, partialOrders, ubigeo) => {
     let packages = 0
-    for (let order of orders) {
-      if (order.idCiudadDestino === ubigeo) packages += order.cantPaquetes
+    for (let order of partialOrders) {
+      const orderRespective = orders.find(o => o.id === order.idPedido)
+      if (orderRespective.idCiudadDestino === ubigeo) packages += order.cantPaquetes
     }
     return packages
   }
@@ -81,7 +82,8 @@ const DataTableWithButtons = ({ id }) => {
           const officesNames = currentData.nombreProvincias
           const times = currentData.arrayHorasLlegada
           const orders = currentData.pedidos
-          const packages = getPackagesPerOffice(orders, offices[1])
+          const partialOrders = currentData.pedidosParciales
+          const packages = getPackagesPerOffice(orders, partialOrders, offices[1])
           totalPackages += packages
 
           const routes = [{
@@ -93,7 +95,7 @@ const DataTableWithButtons = ({ id }) => {
           }]
 
           for (let j = 1; j < offices.length - 1; j++) {
-            const packages = getPackagesPerOffice(orders, offices[j + 1])
+            const packages = getPackagesPerOffice(orders, partialOrders, offices[j + 1])
             totalPackages += packages
             routes.push({
               origin: officesNames[j],

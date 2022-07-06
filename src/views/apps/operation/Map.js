@@ -67,16 +67,14 @@ const MapView = () => {
   useEffect(async () => {
     await getOffices()
     await getVehicules()
-    const currentTime = moment().unix()
-
-    /*
-    for (let vehiculeReference of vehiculesReferences.current) {
-      vehiculeReference.current.startMovement(currentTime)
-    }*/
+    await updateEdges()
+    await getBlocks(moment().toDate(), moment().add(1, 'day').toDate())
 
     return async () => {
       setOffices([])
       setVehicules([])
+      setEdgesPositions([])
+      setBlocks([])
       console.log('Unmounted')
     }
   }, [])
@@ -84,6 +82,7 @@ const MapView = () => {
   const updateEdges = async () => {
     const response = await axios.get(`${API_URL}/TramosUsadosDiaDia/`)
     const listEdges = response.data
+    console.log(listEdges)
     const positions = []
 
     for (const edge of listEdges) {
