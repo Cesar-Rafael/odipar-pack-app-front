@@ -146,11 +146,11 @@ const MapView = () => {
               {vehicules.map((vehicule, idx) => <Vehicule key={`vehicule-${idx}`} vehicule={vehicule} offices={coordenatesPerOffice.current} ref={vehiculesReferences.current[idx]} />)}
 
               {edgePositions.map((position, idx) => {
-                return (<Polyline key={`edge-${idx}`} positions={position} color={'#7F7F7F'} weight={1} />)
+                return (<Polyline key={`edge-${idx}`} positions={position} color={'#7F7F7F'} weight={1.25} />)
               })}
 
               {blocks.map((position, idx) => {
-                return (<Polyline key={`block-${idx}`} positions={position} color={'#A12C22'} weight={1} />)
+                return (<Polyline key={`block-${idx}`} positions={position} color={'#A12C22'} weight={0.5} />)
               })}
 
               <Legend map={map} />

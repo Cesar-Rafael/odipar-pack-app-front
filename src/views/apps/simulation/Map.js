@@ -4,7 +4,7 @@ import '@styles/react/libs/maps/map-leaflet.scss'
 import Vehicule from './Vehicule'
 import DataUpload from './DataUpload'
 import TableExpandable from './Rutas'
-import { useState, useEffect, useRef, Fragment } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import moment from 'moment'
 import Legend from './Legend'
@@ -162,7 +162,12 @@ const MapView = () => {
       }
 
       const response = await axios.post(`${API_URL}/ABCS/`, payload)
-      if (response.data) break
+      if (response.data) {
+        console.log(`COLAPSO en corrida n° ${ordersTimeToAttend.current}`)
+        break
+      } else {
+        console.log(`Corrida n° ${ordersTimeToAttend.current} exitosa`)
+      }
     }
   }
 
@@ -284,94 +289,103 @@ const MapView = () => {
         }
       </CardHeader>
       <CardBody>
-        <Row className='mb-1'>
-          <Col xs='4'>
-            <DataUpload loadOrders={setOrders} offices={offices} />
-          </Col>
-          <Col xs='4'>
-            <FormGroup check inline>
-              <b className='mr-2'>Cantidad de Pedidos:</b>
-              {ordersTotal}
-            </FormGroup>
-          </Col>
-          <Col xs='4'>
-            <FormGroup check inline>
-              <b className='mr-2'>Velocidad:</b>
-              <Label check>
-                <Input type='radio' name='speed' value={1} defaultChecked onChange={setSpeedValue} /> x1.0
-              </Label>
-            </FormGroup>
-            <FormGroup check inline>
-              <Label check>
-                <Input type='radio' name='speed' value={2} onChange={setSpeedValue} /> x2.0
-              </Label>
-            </FormGroup>
-            <FormGroup check inline>
-              <Label check>
-                <Input type='radio' name='speed' value={3} onChange={setSpeedValue} /> x3.0
-              </Label>
-            </FormGroup>
-          </Col>
-          <Col xs='4'>
-            <b>Inicio Simulacion:</b> <br />
-            {startTimeSimulation.current ? startTimeSimulation.current.format('DD/MM/YYYY h:mm a') : '-'}
-          </Col>
-          <Col xs='4'>
-            <b>Tiempo Actual Simulacion:</b> <br />
-            <b style={{ fontSize: 18, borderStyle: 'dotted' }}>
-              {currentTimeSimulation ? currentTimeSimulation.format('DD/MM/YYYY h:mm a') : '-'}
-            </b>
-          </Col>
-          <Col xs='4'>
-            <b>Fin de Simulacion:</b> <br />
-            {endTimeSimulation.current ? endTimeSimulation.current.format('DD/MM/YYYY h:mm a') : '-'}
-          </Col>
-        </Row>
-        <Row className='mb-2'>
-          <Col xs='12'>
-            <Progress animated striped className='progress-bar-info' value={percentageProgress}>{percentageProgress.toFixed(0)} %</Progress>
-          </Col>
-        </Row>
         <Row>
-          <Col xs='6'>
-            <MapContainer center={position} zoom={zoom} className='leaflet-map' style={{ height: "100vh" }} scrollWheelZoom={true}
-              whenCreated={setMap}>
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
+          <Col md='6'>
+            <Row>
+              <Col xs='12'>
+                <MapContainer center={position} zoom={zoom} className='leaflet-map' style={{ height: "100vh" }} scrollWheelZoom={true}
+                  whenCreated={setMap}>
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
 
-              {offices.map((office, idx) => {
-                return (<CircleMarker key={`office-${idx}`} center={[office.latitud, office.longitud]} radius={office.esPrincipal ? 6 : 5} weight={office.esPrincipal ? 6 : 6} color={office.esPrincipal ? '#C72E30' : '#6E5600'} fillColor={office.esPrincipal ? '#C72E30' : '#6E5600'}>
-                  <Popup>
-                    <b>Ubigeo: </b> {office.ubigeo} <br />
-                    <b>Region: </b> {office.region} <br />
-                    <b>Departamento: </b> {office.departamento} <br />
-                    <b>Provincia: </b> {office.provincia} <br />
-                    <b>Latitud: </b> {office.latitud} <br />
-                    <b>Longitud: </b> {office.longitud} <br />
-                  </Popup>
-                </CircleMarker>)
-              })}
+                  {offices.map((office, idx) => {
+                    return (<CircleMarker key={`office-${idx}`} center={[office.latitud, office.longitud]} radius={office.esPrincipal ? 6 : 4} weight={office.esPrincipal ? 6 : 5} color={office.esPrincipal ? '#C72E30' : '#6E5600'} fillColor={office.esPrincipal ? '#C72E30' : '#6E5600'}>
+                      <Popup>
+                        <b>Ubigeo: </b> {office.ubigeo} <br />
+                        <b>Region: </b> {office.region} <br />
+                        <b>Departamento: </b> {office.departamento} <br />
+                        <b>Provincia: </b> {office.provincia} <br />
+                        <b>Latitud: </b> {office.latitud} <br />
+                        <b>Longitud: </b> {office.longitud} <br />
+                      </Popup>
+                    </CircleMarker>)
+                  })}
 
-              {vehicules.map((vehicule, idx) => <Vehicule key={`vehicule-${idx}`} vehicule={vehicule} offices={coordenatesPerOffice.current} ref={vehiculesReferences.current[idx]} />)}
+                  {vehicules.map((vehicule, idx) => <Vehicule key={`vehicule-${idx}`} vehicule={vehicule} offices={coordenatesPerOffice.current} ref={vehiculesReferences.current[idx]} />)}
 
-              {edgePositions.map((position, idx) => {
-                return (<Polyline key={`edge-${idx}`} positions={position} color={'#7F7F7F'} weight={1} />)
-              })}
+                  {edgePositions.map((position, idx) => {
+                    return (<Polyline key={`edge-${idx}`} positions={position} color={'#7F7F7F'} weight={1.25} />)
+                  })}
 
-              {blocks.map((position, idx) => {
-                return (<Polyline key={`block-${idx}`} positions={position} color={'#A12C22'} weight={1} />)
-              })}
+                  {blocks.map((position, idx) => {
+                    return (<Polyline key={`block-${idx}`} positions={position} color={'#A12C22'} weight={0.5} />)
+                  })}
 
-              <Legend map={map} />
+                  <Legend map={map} />
 
-            </MapContainer>
+                </MapContainer>
+              </Col>
+            </Row>
           </Col>
-          <Col xs='6'>
-            <TableExpandable key='table-1' ref={routesTableRef} />
+
+          <Col md='6'>
+            <Row>
+              <Col xs='6'>
+                <DataUpload loadOrders={setOrders} offices={offices} />
+              </Col>
+              <Col xs='6'>
+                <FormGroup check inline>
+                  <b className='mr-2'>Velocidad:</b>
+                  <Label check>
+                    <Input type='radio' name='speed' value={1} defaultChecked onChange={setSpeedValue} /> x1.0
+                  </Label>
+                </FormGroup>
+                <FormGroup check inline>
+                  <Label check>
+                    <Input type='radio' name='speed' value={2} onChange={setSpeedValue} /> x2.0
+                  </Label>
+                </FormGroup>
+                {
+                  /*
+                  <FormGroup check inline>
+                    <Label check>
+                      <Input type='radio' name='speed' value={3} onChange={setSpeedValue} /> x3.0
+                    </Label>
+                  </FormGroup>
+                  <FormGroup check inline>
+                    <b className='mr-2'>Cantidad de Pedidos:</b>
+                    {ordersTotal}
+                  </FormGroup>
+                  */
+                }
+
+              </Col>
+              <Col xs='4'>
+                <b>Inicio:</b> <br />
+                {startTimeSimulation.current ? startTimeSimulation.current.format('DD/MM h:mm a') : '-'}
+              </Col>
+              <Col xs='4'>
+                <b>Avance:</b> <br />
+                <b style={{ fontSize: 18, borderStyle: 'dotted' }}>
+                  {currentTimeSimulation ? currentTimeSimulation.format('DD/MM h:mm a') : '-'}
+                </b>
+              </Col>
+              <Col xs='4'>
+                <b>Fin:</b> <br />
+                {endTimeSimulation.current ? endTimeSimulation.current.format('DD/MM h:mm a') : '-'}
+              </Col>
+              <Col xs='12' className='mt-1'>
+                <Progress animated striped className='progress-bar-info' value={percentageProgress}>{percentageProgress.toFixed(0)} %</Progress>
+              </Col>
+              <Col xs='12'>
+                <TableExpandable key='table-1' ref={routesTableRef} />
+              </Col>
+            </Row>
           </Col>
         </Row>
+
       </CardBody>
       {
         isOpen ?

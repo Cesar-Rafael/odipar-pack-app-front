@@ -138,7 +138,7 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     })
 
     return (
-        <CircleMarker key={`vehicule-${vehicule.id}`} radius={3} weight={5} center={position} color={'#1828BA'}>
+        <CircleMarker key={`vehicule-${vehicule.id}`} radius={3} weight={6} center={position} color={'#1828BA'}>
             <Popup>
                 <b>Codigo: </b> {vehicule.codigo} <br />
                 <b>Capacidad: </b> {vehicule.capacidadTotal} <br />

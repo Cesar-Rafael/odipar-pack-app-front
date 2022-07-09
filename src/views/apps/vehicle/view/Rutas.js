@@ -84,6 +84,9 @@ const DataTableWithButtons = ({ id }) => {
           const orders = currentData.pedidos
           const partialOrders = currentData.pedidosParciales
           const packages = getPackagesPerOffice(orders, partialOrders, offices[1])
+          const officesTraveled = []
+
+          officesTraveled.push(offices[1])
           totalPackages += packages
 
           const routes = [{
@@ -95,8 +98,10 @@ const DataTableWithButtons = ({ id }) => {
           }]
 
           for (let j = 1; j < offices.length - 1; j++) {
-            const packages = getPackagesPerOffice(orders, partialOrders, offices[j + 1])
+            const packages = officesTraveled.includes(offices[j + 1]) ? 0 : getPackagesPerOffice(orders, partialOrders, offices[j + 1])
             totalPackages += packages
+            officesTraveled.push(offices[j + 1])
+            
             routes.push({
               origin: officesNames[j],
               originTime: times[j] + 3600,

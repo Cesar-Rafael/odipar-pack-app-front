@@ -1,7 +1,7 @@
 import { Popup, CircleMarker } from 'react-leaflet'
 import axios from 'axios'
 import { useState, useRef, useImperativeHandle, forwardRef } from 'react'
-import API_URL from '../config'
+import API_URL from './../config'
 
 // 5m - 1440m (24h) 35m / 3 = 12m
 // 1m - 288m
@@ -130,7 +130,7 @@ const Vehicule = forwardRef(({ vehicule, offices }, ref) => {
     })
 
     return (
-        <CircleMarker key={`vehicule-${vehicule.id}`} radius={3} weight={5} center={position} color={'#1828BA'}>
+        <CircleMarker key={`vehicule-${vehicule.id}`} radius={3} weight={6} center={position} color={'#1828BA'}>
             <Popup>
                 <b>Codigo: </b> {vehicule.codigo} <br />
                 <b>Capacidad: </b> {vehicule.capacidadTotal} <br />

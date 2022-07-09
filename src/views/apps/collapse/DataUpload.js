@@ -26,8 +26,6 @@ const DataUpload = ({ loadOrders, offices }) => {
             for (let i = 0; i < line.length; i++) {
                 const part = line[i].split(/(\s+)/).filter(e => e.trim().length > 0)
 
-                if (+part[0] === 8) break // Solo leen los primeros 7 días
-
                 const hora = part[1].split(":")
                 let date = moment().set({ 'year': currentYear, 'month': currentMonth, 'date': currentDay, 'hour': +hora[0], 'minute': parseInt(hora[1].slice(0, -1)) })
                 date.add(part[0] - 1, 'days')
@@ -48,6 +46,8 @@ const DataUpload = ({ loadOrders, offices }) => {
 
                 pedidos.push(pedido)
             }
+
+            console.log(pedidos.length)
 
             loadOrders(pedidos)
         }

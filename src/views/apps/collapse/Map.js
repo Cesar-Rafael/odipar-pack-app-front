@@ -1,10 +1,10 @@
-import { Card, CardHeader, CardTitle, CardBody, Row, Col, Button, Spinner, Alert, FormGroup, Input, Label, Progress, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap'
+import { Card, CardHeader, CardTitle, CardBody, Row, Col, Button, Spinner, FormGroup, Input, Label, Progress, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap'
 import { MapContainer, TileLayer, Popup, Polyline, CircleMarker } from 'react-leaflet'
 import '@styles/react/libs/maps/map-leaflet.scss'
 import Vehicule from './Vehicule'
 import DataUpload from './DataUpload'
 import TableExpandable from './Rutas'
-import { useState, useEffect, useRef, Fragment } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import moment from 'moment'
 import Legend from './Legend'
@@ -16,7 +16,6 @@ const MapView = () => {
   const position = [-12.51, -76.79]
 
   const totalVehicules = 45
-  const totalTimeSimulation = 576000 // 7 dias en segundos - 28800
 
   // Referencias
   const idTimeSimulation = useRef(0)
@@ -24,16 +23,16 @@ const MapView = () => {
   const ordersReference = useRef([])
   const vehiculesReferences = useRef([])
   const startTimeSimulation = useRef(false)
-  const endTimeSimulation = useRef(false)
   const currentTimeSimulationRef = useRef(false)
   const timeUpdate = useRef(480)
   const routesTableRef = useRef()
   const ordersTimeToAttend = useRef(0)
+  const ordersTimeToCall = useRef(1)
   const currentDateToAttend = useRef()
   const currentDateToCall = useRef()
   const isPaused = useRef(false)
   const totalOrdersAttended = useRef(0)
-
+  const numberExecutionCollapse = useRef(null)
 
   const vehiculesReferencesAux = []
   for (let i = 0; i < totalVehicules; i++) vehiculesReferencesAux.push(useRef())
@@ -47,7 +46,6 @@ const MapView = () => {
   const [showButton, setShowButton] = useState(true)
   const [showLoaderButton, setShowLoaderButton] = useState(false)
   const [speed, setSpeed] = useState(1)
-  const [percentageProgress, setPercentageProgress] = useState(0)
   const [blocks, setBlocks] = useState([])
   const [ordersTotal, setOrdersTotal] = useState(0)
   const [map, setMap] = useState(null)
@@ -130,7 +128,7 @@ const MapView = () => {
 
   const getOrdersToAttend = () => {
     const ordersToAttend = []
-    const startDate = moment.unix(currentDateToAttend.current).subtract(8, 'hours')
+    const startDate = moment.unix(currentDateToAttend.current).subtract(12, 'hours')
     const endDate = moment.unix(currentDateToAttend.current)
     for (let order of ordersReference.current) {
       const dateOrder = moment(order.fechaHoraCreacion)
@@ -138,12 +136,13 @@ const MapView = () => {
     }
     getBlocks(startDate.toDate(), endDate.toDate())
     ordersTimeToAttend.current++
-    currentDateToAttend.current = endDate.add(8, 'hours').unix()
+    currentDateToAttend.current = endDate.add(12, 'hours').unix()
     totalOrdersAttended.current += ordersToAttend.length
     return ordersToAttend
   }
 
   const updateRoutes = () => {
+    ordersTimeToCall.current++
     routesTableRef.current.getRoutesData(currentDateToCall.current)
 
     for (let vehiculeReference of vehiculesReferences.current) {
@@ -154,15 +153,20 @@ const MapView = () => {
   }
 
   const callAlgorithm = async () => {
-    while (ordersTimeToAttend.current <= 21) {
-
+    while (true) {
       const payload = {
         inicioSimulacion: moment.unix(currentDateToAttend.current).toDate(),
         pedidos: getOrdersToAttend(),
       }
 
       const response = await axios.post(`${API_URL}/ABCS/`, payload)
-      if (response.data) break
+      if (response.data) {
+        numberExecutionCollapse = ordersTimeToAttend.current
+        console.log(`COLAPSO en corrida n° ${ordersTimeToAttend.current}`)
+        break
+      } else {
+        console.log(`Corrida n° ${ordersTimeToAttend.current} exitosa`)
+      }
     }
   }
 
@@ -184,10 +188,10 @@ const MapView = () => {
     setShowLoaderButton(true)
 
     // Empieza a las 00:00 horas y va avanzando cada 8 horas
-    startTimeSimulation.current = moment(new Date()).set({ 'hour': 8, 'minute': 0, 'second': 0 })
+    startTimeSimulation.current = moment(new Date()).set({ 'hour': 12, 'minute': 0, 'second': 0 })
     currentDateToAttend.current = moment(startTimeSimulation.current).unix()
-    currentDateToCall.current = moment(startTimeSimulation.current).add(8, 'hours').unix()
-    endTimeSimulation.current = moment(startTimeSimulation.current).add(7, 'days').subtract(8, 'hours')
+    currentDateToCall.current = moment(startTimeSimulation.current).add(12, 'hours').unix()
+
     setCurrentTimeSimulation(moment(startTimeSimulation.current))
     currentTimeSimulationRef.current = moment(startTimeSimulation.current)
 
@@ -216,16 +220,17 @@ const MapView = () => {
         currentTimeSimulationRef.current.add(timeUpdate.current, 'seconds')
         setCurrentTimeSimulation(currentTime => moment(currentTime).add(timeUpdate.current, 'seconds'))
         const currentTimeSeconds = currentTimeSimulationRef.current.unix()
-        setPercentageProgress(((currentTimeSeconds - startTimeSimulation.current.unix()) / totalTimeSimulation) * 100)
+
         if (currentTimeSeconds >= currentDateToCall.current) {
-          stopSimulation()
-          updateRoutes()
-          currentDateToCall.current = moment.unix(currentDateToCall.current).add(8, 'hours').unix()
-          resumeSimulation()
-        }
-        if (currentTimeSeconds >= endTimeSimulation.current.unix()) {
-          await getReport()
-          endSimulation()
+          if (numberExecutionCollapse.current !== ordersTimeToCall.current) {
+            stopSimulation()
+            updateRoutes()
+            currentDateToCall.current = moment.unix(currentDateToCall.current).add(12, 'hours').unix()
+            resumeSimulation()
+          } else {
+            await getReport()
+            endSimulation()
+          }
         }
       }
     }, 1000)
@@ -250,7 +255,7 @@ const MapView = () => {
       <CardHeader>
         <Col xs='4'>
           <CardTitle tag='h3'>
-            <b>Simulación 7 días</b>
+            <b>Colapso Logístico</b>
           </CardTitle>
         </Col>
         {
@@ -284,94 +289,96 @@ const MapView = () => {
         }
       </CardHeader>
       <CardBody>
-        <Row className='mb-1'>
-          <Col xs='4'>
-            <DataUpload loadOrders={setOrders} offices={offices} />
-          </Col>
-          <Col xs='4'>
-            <FormGroup check inline>
-              <b className='mr-2'>Cantidad de Pedidos:</b>
-              {ordersTotal}
-            </FormGroup>
-          </Col>
-          <Col xs='4'>
-            <FormGroup check inline>
-              <b className='mr-2'>Velocidad:</b>
-              <Label check>
-                <Input type='radio' name='speed' value={1} defaultChecked onChange={setSpeedValue} /> x1.0
-              </Label>
-            </FormGroup>
-            <FormGroup check inline>
-              <Label check>
-                <Input type='radio' name='speed' value={2} onChange={setSpeedValue} /> x2.0
-              </Label>
-            </FormGroup>
-            <FormGroup check inline>
-              <Label check>
-                <Input type='radio' name='speed' value={3} onChange={setSpeedValue} /> x3.0
-              </Label>
-            </FormGroup>
-          </Col>
-          <Col xs='4'>
-            <b>Inicio Simulacion:</b> <br />
-            {startTimeSimulation.current ? startTimeSimulation.current.format('DD/MM/YYYY h:mm a') : '-'}
-          </Col>
-          <Col xs='4'>
-            <b>Tiempo Actual Simulacion:</b> <br />
-            <b style={{ fontSize: 18, borderStyle: 'dotted' }}>
-              {currentTimeSimulation ? currentTimeSimulation.format('DD/MM/YYYY h:mm a') : '-'}
-            </b>
-          </Col>
-          <Col xs='4'>
-            <b>Fin de Simulacion:</b> <br />
-            {endTimeSimulation.current ? endTimeSimulation.current.format('DD/MM/YYYY h:mm a') : '-'}
-          </Col>
-        </Row>
-        <Row className='mb-2'>
-          <Col xs='12'>
-            <Progress animated striped className='progress-bar-info' value={percentageProgress}>{percentageProgress.toFixed(0)} %</Progress>
-          </Col>
-        </Row>
         <Row>
-          <Col xs='6'>
-            <MapContainer center={position} zoom={zoom} className='leaflet-map' style={{ height: "100vh" }} scrollWheelZoom={true}
-              whenCreated={setMap}>
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
+          <Col md='6'>
+            <Row>
+              <Col xs='12'>
+                <MapContainer center={position} zoom={zoom} className='leaflet-map' style={{ height: "100vh" }} scrollWheelZoom={true}
+                  whenCreated={setMap}>
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
 
-              {offices.map((office, idx) => {
-                return (<CircleMarker key={`office-${idx}`} center={[office.latitud, office.longitud]} radius={office.esPrincipal ? 6 : 5} weight={office.esPrincipal ? 6 : 6} color={office.esPrincipal ? '#C72E30' : '#6E5600'} fillColor={office.esPrincipal ? '#C72E30' : '#6E5600'}>
-                  <Popup>
-                    <b>Ubigeo: </b> {office.ubigeo} <br />
-                    <b>Region: </b> {office.region} <br />
-                    <b>Departamento: </b> {office.departamento} <br />
-                    <b>Provincia: </b> {office.provincia} <br />
-                    <b>Latitud: </b> {office.latitud} <br />
-                    <b>Longitud: </b> {office.longitud} <br />
-                  </Popup>
-                </CircleMarker>)
-              })}
+                  {offices.map((office, idx) => {
+                    return (<CircleMarker key={`office-${idx}`} center={[office.latitud, office.longitud]} radius={office.esPrincipal ? 6 : 4} weight={office.esPrincipal ? 6 : 5} color={office.esPrincipal ? '#C72E30' : '#6E5600'} fillColor={office.esPrincipal ? '#C72E30' : '#6E5600'}>
+                      <Popup>
+                        <b>Ubigeo: </b> {office.ubigeo} <br />
+                        <b>Region: </b> {office.region} <br />
+                        <b>Departamento: </b> {office.departamento} <br />
+                        <b>Provincia: </b> {office.provincia} <br />
+                        <b>Latitud: </b> {office.latitud} <br />
+                        <b>Longitud: </b> {office.longitud} <br />
+                      </Popup>
+                    </CircleMarker>)
+                  })}
 
-              {vehicules.map((vehicule, idx) => <Vehicule key={`vehicule-${idx}`} vehicule={vehicule} offices={coordenatesPerOffice.current} ref={vehiculesReferences.current[idx]} />)}
+                  {vehicules.map((vehicule, idx) => <Vehicule key={`vehicule-${idx}`} vehicule={vehicule} offices={coordenatesPerOffice.current} ref={vehiculesReferences.current[idx]} />)}
 
-              {edgePositions.map((position, idx) => {
-                return (<Polyline key={`edge-${idx}`} positions={position} color={'#7F7F7F'} weight={1} />)
-              })}
+                  {edgePositions.map((position, idx) => {
+                    return (<Polyline key={`edge-${idx}`} positions={position} color={'#7F7F7F'} weight={1.25} />)
+                  })}
 
-              {blocks.map((position, idx) => {
-                return (<Polyline key={`block-${idx}`} positions={position} color={'#A12C22'} weight={1} />)
-              })}
+                  {blocks.map((position, idx) => {
+                    return (<Polyline key={`block-${idx}`} positions={position} color={'#A12C22'} weight={0.5} />)
+                  })}
 
-              <Legend map={map} />
+                  <Legend map={map} />
 
-            </MapContainer>
+                </MapContainer>
+              </Col>
+            </Row>
           </Col>
-          <Col xs='6'>
-            <TableExpandable key='table-1' ref={routesTableRef} />
+
+          <Col md='6'>
+            <Row>
+              <Col xs='6'>
+                <DataUpload loadOrders={setOrders} offices={offices} />
+              </Col>
+              <Col xs='6'>
+                <FormGroup check inline>
+                  <b className='mr-2'>Velocidad:</b>
+                  <Label check>
+                    <Input type='radio' name='speed' value={1} defaultChecked onChange={setSpeedValue} /> x1.0
+                  </Label>
+                </FormGroup>
+                <FormGroup check inline>
+                  <Label check>
+                    <Input type='radio' name='speed' value={2} onChange={setSpeedValue} /> x2.0
+                  </Label>
+                </FormGroup>
+                {
+                  /*
+                  <FormGroup check inline>
+                    <Label check>
+                      <Input type='radio' name='speed' value={3} onChange={setSpeedValue} /> x3.0
+                    </Label>
+                  </FormGroup>
+                  <FormGroup check inline>
+                    <b className='mr-2'>Cantidad de Pedidos:</b>
+                    {ordersTotal}
+                  </FormGroup>
+                  */
+                }
+
+              </Col>
+              <Col xs='6'>
+                <b>Inicio:</b> <br />
+                {startTimeSimulation.current ? startTimeSimulation.current.format('DD/MM h:mm a') : '-'}
+              </Col>
+              <Col xs='6'>
+                <b>Avance:</b> <br />
+                <b style={{ fontSize: 18, borderStyle: 'dotted' }}>
+                  {currentTimeSimulation ? currentTimeSimulation.format('DD/MM h:mm a') : '-'}
+                </b>
+              </Col>
+              <Col xs='12'>
+                <TableExpandable key='table-1' ref={routesTableRef} />
+              </Col>
+            </Row>
           </Col>
         </Row>
+
       </CardBody>
       {
         isOpen ?
@@ -380,8 +387,10 @@ const MapView = () => {
             className='modal-dialog-centered'
             modalClassName={'modal-success'}
           >
-            <ModalHeader>Simulación Finalizada</ModalHeader>
+            <ModalHeader>Colapso Alcanzado</ModalHeader>
             <ModalBody>
+              <b>Fecha de Colapso: </b> {currentTimeSimulation.format('DD/MM h:mm a')} <hr></hr>
+              <b>Días de simulación: </b> {numberExecutionCollapse.current / 2} <hr></hr>
               <b>Cantidad de Pedidos Atendidos: </b> {report.ordersTotal} <hr></hr>
               <b>Cantidad de Rutas Generadas:</b> {report.cantRutas} <hr></hr>
               <b>Tiempo promedio de entrega:</b> {(report.promTiempo / 3600).toFixed(2)} horas <hr></hr>
