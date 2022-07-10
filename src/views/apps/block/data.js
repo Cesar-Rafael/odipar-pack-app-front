@@ -8,13 +8,13 @@ export const multiLingColumns = [
   },
   {
     name: 'Desde',
-    selector: 'ubigeoInicio',
+    selector: 'oficinaInicio',
     sortable: true,
     minWidth: '100px'
   },
   {
     name: 'Hasta',
-    selector: 'ubigeoFin',
+    selector: 'oficinaFin',
     sortable: true,
     minWidth: '100px'
   },
