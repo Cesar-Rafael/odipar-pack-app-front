@@ -89,9 +89,10 @@ const MapView = () => {
   const endSimulation = async () => {
     clearInterval(idTimeSimulation.current)
     setSimulationFinished(true)
+    /*
     for (let vehiculeReference of vehiculesReferences.current) {
       vehiculeReference.current.stopSimulation()
-    }
+    }*/
   }
 
   useEffect(async () => {

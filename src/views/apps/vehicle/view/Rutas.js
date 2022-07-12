@@ -21,6 +21,9 @@ const DataTableWithButtons = ({ id }) => {
 
   useEffect(async () => {
     await getRoutesData()
+    return () => {
+      setData([])
+    }
   }, [])
 
   // ** Function to handle pagination
@@ -101,7 +104,7 @@ const DataTableWithButtons = ({ id }) => {
             const packages = officesTraveled.includes(offices[j + 1]) ? 0 : getPackagesPerOffice(orders, partialOrders, offices[j + 1])
             totalPackages += packages
             officesTraveled.push(offices[j + 1])
-            
+
             routes.push({
               origin: officesNames[j],
               originTime: times[j] + 3600,
