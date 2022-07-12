@@ -103,6 +103,8 @@ const DataTableWithButtons = () => {
       block.fechaFin = moment(block.fechaFin).format('DD/MM/YYYY HH:mm')
       block.ubigeoInicio = block.ubigeoInicio.toString()
       block.ubigeoFin = block.ubigeoFin.toString()
+      block.oficinaInicio = block.oficinaInicio.toString()
+      block.oficinaFin = block.oficinaFin.toString()
       return block
     }))
   }
@@ -132,13 +134,17 @@ const DataTableWithButtons = () => {
           item.fechaInicio.toLowerCase().startsWith(value.toLowerCase()) ||
           item.fechaFin.toLowerCase().startsWith(value.toLowerCase()) ||
           item.ubigeoFin.toLowerCase().startsWith(value.toLowerCase()) ||
-          item.ubigeoInicio.toLowerCase().startsWith(value.toLowerCase())
+          item.ubigeoInicio.toLowerCase().startsWith(value.toLowerCase()) ||
+          item.oficinaFin.toLowerCase().startsWith(value.toLowerCase()) ||
+          item.oficinaInicio.toLowerCase().startsWith(value.toLowerCase())
 
         const includes =
           item.fechaInicio.toLowerCase().includes(value.toLowerCase()) ||
           item.fechaFin.toLowerCase().includes(value.toLowerCase()) ||
           item.ubigeoFin.toLowerCase().includes(value.toLowerCase()) ||
-          item.ubigeoInicio.toLowerCase().includes(value.toLowerCase())
+          item.ubigeoInicio.toLowerCase().includes(value.toLowerCase()) ||
+          item.oficinaFin.toLowerCase().includes(value.toLowerCase()) ||
+          item.oficinaInicio.toLowerCase().includes(value.toLowerCase())
 
         if (startsWith) {
           return startsWith
