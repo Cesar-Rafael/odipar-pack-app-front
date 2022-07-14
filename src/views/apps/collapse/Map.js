@@ -162,7 +162,7 @@ const MapView = () => {
 
       const response = await axios.post(`${API_URL}/ABCS/`, payload)
       if (response.data) {
-        numberExecutionCollapse = ordersTimeToAttend.current
+        numberExecutionCollapse.current = ordersTimeToAttend.current
         console.log(`COLAPSO en corrida n° ${ordersTimeToAttend.current}`)
         break
       } else {
